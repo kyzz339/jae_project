@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        #chat-room {
+            width: 300px;
+            margin: 50px auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        #chat-messages {
+            height: 200px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            overflow-y: scroll;
+            padding: 5px;
+        }
+
+        #chat-input {
+            width: calc(100% - 60px);
+            padding: 5px;
+        }
+
+        #send-button {
+            padding: 5px;
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-room">
+        <div id="chat-messages"></div>
+        <input type="text" id="chat-input" placeholder="Enter your message..."/>
+        <button id="send-button">Send</button>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script>
+        const roomId = 5; // 예시로 방 ID를 1로 지정
+
+        // 서버에서 이전 메시지 불러오기
+        function loadPreviousMessages() {
+            fetch(`/api/chat/enter/${roomId}`)
+                .then(response => response.json())
+                .then(messages => {
+                    const chatMessages = document.getElementById('chat-messages');
+                    messages.forEach(message => {
+                        const messageElement = document.createElement('div');
+                        messageElement.textContent = message.content;
+                        chatMessages.appendChild(messageElement);
+                    });
+                    chatMessages.scrollTop = chatMessages.scrollHeight; // 스크롤을 맨 아래로
+                })
+                .catch(error => console.error('Error fetching previous messages:', error));
+        }
+
+        // WebSocket 연결 설정
+        const socket = new SockJS('/stomp/chat');
+        const stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+
+            // 이전 메시지 로드
+            loadPreviousMessages();
+
+            // 실시간 메시지 수신
+            stompClient.subscribe('/sub/chat/room/' + roomId, function (messageOutput) {
+                const message = JSON.parse(messageOutput.body);
+                const chatMessages = document.getElementById('chat-messages');
+                const messageElement = document.createElement('div');
+                messageElement.textContent = message.content;
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight; // 새로운 메시지가 보이도록 스크롤
+            });
+        });
+
+        // 메시지 전송
+        document.getElementById('send-button').addEventListener('click', function() {
+            const chatInput = document.getElementById('chat-input');
+            const messageContent = chatInput.value.trim();
+            if (messageContent && stompClient.connected) {
+                stompClient.send("/pub/chat/message", {}, JSON.stringify({ roomId: roomId, content: messageContent }));
+                chatInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
