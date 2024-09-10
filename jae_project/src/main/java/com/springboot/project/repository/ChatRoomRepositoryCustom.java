@@ -1,11 +1,13 @@
 package com.springboot.project.repository;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.springboot.project.data.entity.ChatRoom;
 
 public interface ChatRoomRepositoryCustom {
 
 	
-	public List<ChatRoom> mychatRooms(String email);
+	public Page<ChatRoom> mychatRooms(String email , Pageable pageable);
 	
 }

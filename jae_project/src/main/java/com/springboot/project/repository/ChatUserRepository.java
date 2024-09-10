@@ -14,4 +14,6 @@ public interface ChatUserRepository extends JpaRepository<ChatUser, Long>{
 	
 	public boolean existsByEmailAndChatRoom_RoomId(String email, int roomId); 
 	
+	public ChatUser existsByChatRoom_RoomIdAndEmail(int roomId , String email);
+	
 }

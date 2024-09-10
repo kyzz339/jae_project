@@ -3,6 +3,9 @@ package com.springboot.project.repository;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +26,7 @@ public class ChatRoomRepositoryCustomImpl extends QuerydslRepositorySupport impl
 	JPAQueryFactory jpaQueryFactory;
 	
 	@Override
-	public List<ChatRoom> mychatRooms(String email){
+	public Page<ChatRoom> mychatRooms(String email , Pageable pageable){
 		
 		QChatRoom qchatRoom = QChatRoom.chatRoom;
 		QChatUser qchatUser = QChatUser.chatUser;
@@ -34,10 +37,20 @@ public class ChatRoomRepositoryCustomImpl extends QuerydslRepositorySupport impl
                 .leftJoin(qchatRoom.chatUsers, qchatUser)  // 변경된 부분
                 .on(qchatRoom.roomId.eq(qchatUser.chatRoom.roomId))
                 .where(qchatUser.email.eq(email))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
-									
-		
-		return chatRoomlist;
+		// 전체 결과 개수 구하기
+        long total = jpaQueryFactory
+                .select(qchatRoom)
+                .from(qchatRoom)
+                .leftJoin(qchatRoom.chatUsers, qchatUser)
+                .on(qchatRoom.roomId.eq(qchatUser.chatRoom.roomId))
+                .where(qchatUser.email.eq(email))
+                .fetchCount();
+
+        // PageImpl로 결과를 반환
+        return new PageImpl<>(chatRoomlist, pageable, total);
 	} 
 	
 }

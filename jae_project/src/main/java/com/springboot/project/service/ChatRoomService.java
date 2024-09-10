@@ -1,15 +1,15 @@
 package com.springboot.project.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.springboot.project.data.dto.ChatRoomDTO;
 import com.springboot.project.data.dto.ChatUserDTO;
-import com.springboot.project.data.entity.ChatRoom;
 
 public interface ChatRoomService {
 	
 	//나의 채팅방 찾기
-	public List<ChatRoomDTO> findMyChatRoom(String email);
+	public Page<ChatRoomDTO> findMyChatRoom(String email , Pageable pageable);
 	//채팅방 생성
 	public ChatRoomDTO createChatRoom(String roomName , String userid);
 	//채팅방 삭제
@@ -20,5 +20,6 @@ public interface ChatRoomService {
 	public boolean isUserInRoom(String email ,int roomId);
 	//host 사용자 확인
 	public String isHostChatRoom(int roomId);
+	
 	
 }

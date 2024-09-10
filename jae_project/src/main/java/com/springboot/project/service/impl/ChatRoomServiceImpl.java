@@ -1,10 +1,12 @@
 package com.springboot.project.service.impl;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.springboot.project.data.dto.ChatRoomDTO;
@@ -14,8 +16,6 @@ import com.springboot.project.data.entity.ChatUser;
 import com.springboot.project.repository.ChatRoomRepository;
 import com.springboot.project.repository.ChatUserRepository;
 import com.springboot.project.service.ChatRoomService;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 public class ChatRoomServiceImpl implements ChatRoomService{
@@ -27,22 +27,20 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 	ChatUserRepository chatUserRepository;
 	
 	//본인 채팅방 찾기
-	public List<ChatRoomDTO> findMyChatRoom(String email){
+	public Page<ChatRoomDTO> findMyChatRoom(String email , Pageable pageable){
 		//query DSL로 개인 이메일로 roomid 조회
 		
-		List<ChatRoom> chatRoom = chatRoomRepository.mychatRooms(email);
-		List<ChatRoomDTO> chatRoomDTO = new ArrayList<ChatRoomDTO>();
+		Page<ChatRoom> chatRooms = chatRoomRepository.mychatRooms(email , pageable);
 		
-		for(ChatRoom x : chatRoom) {
-			ChatRoomDTO chatroomdto = ChatRoomDTO.builder()
-									.roomId(x.getRoomId())
-									.name(x.getName())
-									.host(x.getHost())
-									.build();
-			chatRoomDTO.add(chatroomdto);
-		}
+		List<ChatRoomDTO> chatRoomDTO = chatRooms.stream()
+		        .map(chatRoom -> ChatRoomDTO.builder()
+		                .roomId(chatRoom.getRoomId())
+		                .name(chatRoom.getName())
+		                .host(chatRoom.getHost())
+		                .build())
+		            .collect(Collectors.toList());
 		
-		return chatRoomDTO;
+		return new PageImpl<>(chatRoomDTO , pageable, chatRooms.getTotalElements());
 	}
 	
 	//채팅방 생성
