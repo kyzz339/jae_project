@@ -2,7 +2,6 @@ package com.springboot.project.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.springboot.project.data.dto.ChatMessageDTO;
 import com.springboot.project.data.dto.ChatRoomDTO;
@@ -87,7 +87,7 @@ public class ChatController {
 	@PostMapping("/rooms/delete")
 	@ApiOperation(value = "채팅방 삭제" ,notes = "해당 채팅방 호스트만 사용 가능")
 	public ResponseEntity<ChatRoomDTO> deleteChatRoom(@RequestBody ChatRoomDTO chatRoomDTO) {
-		System.out.println(chatRoomDTO.getRoomId());
+		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
 	    
@@ -140,6 +140,7 @@ public class ChatController {
 				.roomId(message.getRoomId())
 				.sender(message.getSender())
 				.name(message.getName())
+				.type("txt")
 				.content(message.getContent())
 				.timestamp(LocalDateTime.now()).build();
 		
@@ -171,6 +172,7 @@ public class ChatController {
 								.roomId(roomId)
 								.content(email + "님이 입장하였습니다.")
 								.sender("SYSTEM")
+								.type("txt")
 								.timestamp(LocalDateTime.now())
 								.build();
 								
@@ -180,6 +182,7 @@ public class ChatController {
 								 .roomId(message.getRoomId())
 								 .sender(message.getSender())
 								 .content(message.getContent())
+								 .type("txt")
 								 .timestamp(message.getTimestamp())
 								 .build();
 		chatService.saveChat(chatMessage);
@@ -188,5 +191,43 @@ public class ChatController {
 		
 	}
 	
-	//파일 업로드 추가 합시다
+	//파일 업로드 추가
+	@PostMapping("/upload/{roomId}/file")
+	public ResponseEntity<?> uploadfile(MultipartFile file , @PathVariable int roomId) {
+		
+		try {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		User user = (User) authentication.getPrincipal();
+		
+		ChatMessageDTO messageDTO = ChatMessageDTO.builder()
+									.roomId(roomId)
+									.sender(user.getEmail())
+									.name(user.getName())
+									.timestamp(LocalDateTime.now())
+									.build();
+		messageDTO = chatService.uploadfile(file , messageDTO);
+		
+		template.convertAndSend("/sub/chat/room/" + messageDTO.getRoomId(), messageDTO);
+		
+		ChatMessage chatMessage = ChatMessage.builder()
+								.roomId(messageDTO.getRoomId())
+								.sender(messageDTO.getSender())
+								.name(messageDTO.getName())
+								.content(messageDTO.getContent())
+								.type(messageDTO.getType())
+								.fileUrl(messageDTO.getFileUrl())
+								.timestamp(messageDTO.getTimestamp())
+								.build();
+		
+		chatService.saveChat(chatMessage);
+		
+		return ResponseEntity.ok(messageDTO);
+	}catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()); // 파일 크기 제한 등 예외 처리
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 업로드 중 오류가 발생했습니다.");
+    }
+	}
+	//파일 다운로드
+	//채팅 취소 추가
 }

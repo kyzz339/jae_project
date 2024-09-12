@@ -2,6 +2,8 @@ package com.springboot.project.service;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.springboot.project.data.dto.ChatMessageDTO;
 import com.springboot.project.data.entity.ChatMessage;
 
@@ -14,5 +16,6 @@ public interface ChatService {
 	//채팅방 내용 fetch
 	public List<ChatMessageDTO> findChatMessageByroomId(int roomId);
 	//파일 업로드
+	public ChatMessageDTO uploadfile(MultipartFile file , ChatMessageDTO messageDTO);
 	
 }
