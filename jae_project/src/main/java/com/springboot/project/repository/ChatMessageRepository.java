@@ -2,6 +2,7 @@ package com.springboot.project.repository;
 
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,5 +14,7 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage , Str
 	public ChatMessage findByRoomId(int roomId);
 	
 	public List<ChatMessage> findAllByRoomId(int roomId);
+	
+	public ChatMessage findById(ObjectId objectId);
 
 }

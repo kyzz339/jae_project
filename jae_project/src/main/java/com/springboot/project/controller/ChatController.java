@@ -3,11 +3,15 @@ package com.springboot.project.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
@@ -117,7 +121,6 @@ public class ChatController {
 		//채팅 내용 뿌려주기
 	    //스크롤 위로 할 씨 추가적으로 fetch	
 		List<ChatMessageDTO> chatMessage = chatService.findChatMessageByroomId(roomId);
-		
 		return ResponseEntity.ok(chatMessage);
 		
 	}
@@ -126,7 +129,7 @@ public class ChatController {
 	//@PostMapping(value = "/message")
 	@PostMapping("/rooms/{roomId}/messages")
 	@ApiOperation(value = "메시지 전송 및 채팅 내용 저장" ,notes = "채팅 내용 저장")
-	public ResponseEntity<Void> message(@RequestBody ChatMessageDTO message) {
+	public ResponseEntity<ChatMessageDTO> message(@RequestBody ChatMessageDTO message) {
 		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		User user = (User) authentication.getPrincipal();
@@ -144,9 +147,11 @@ public class ChatController {
 				.content(message.getContent())
 				.timestamp(LocalDateTime.now()).build();
 		
-		chatService.saveChat(chatMessage);
+		ChatMessageDTO chatMessageDTO =  chatService.saveChat(chatMessage);
 		
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		
+		
+		return ResponseEntity.ok(chatMessageDTO);
 	}
 	
 	//채팅방 초대
@@ -197,25 +202,27 @@ public class ChatController {
 		
 		try {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		User user = (User) authentication.getPrincipal();
 		
+		User user = (User) authentication.getPrincipal();
 		ChatMessageDTO messageDTO = ChatMessageDTO.builder()
 									.roomId(roomId)
 									.sender(user.getEmail())
 									.name(user.getName())
 									.timestamp(LocalDateTime.now())
 									.build();
-		messageDTO = chatService.uploadfile(file , messageDTO);
+		messageDTO = chatService.uploadFile(file , messageDTO);
 		
 		template.convertAndSend("/sub/chat/room/" + messageDTO.getRoomId(), messageDTO);
 		
 		ChatMessage chatMessage = ChatMessage.builder()
+								.id(messageDTO.getId())
 								.roomId(messageDTO.getRoomId())
 								.sender(messageDTO.getSender())
 								.name(messageDTO.getName())
 								.content(messageDTO.getContent())
 								.type(messageDTO.getType())
 								.fileUrl(messageDTO.getFileUrl())
+								.original_filename(messageDTO.getOriginal_filename())
 								.timestamp(messageDTO.getTimestamp())
 								.build();
 		
@@ -229,5 +236,25 @@ public class ChatController {
     }
 	}
 	//파일 다운로드
+	@GetMapping("{id}/download/{filename}")
+	public ResponseEntity<Resource> downloadfile(@PathVariable String id , @PathVariable String filename){
+		
+		try {
+		Resource resource = chatService.downloadFile(id, filename);
+		
+		String originalFileName = chatService.originalFileName(id);
+		
+		return ResponseEntity.ok()
+				.contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + originalFileName + "\"")
+                .body(resource);
+		
+		}catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null); // 잘못된 요청 처리
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // 서버 오류 처리
+        }		
+	}
+	
 	//채팅 취소 추가
 }

@@ -46,6 +46,9 @@ public class ChatMessage {
 	    
 	    @Field("file_url")
 	    private String fileUrl;
+	    
+	    @Field("original_filename")
+	    private String original_filename;
 
 	    @Field("timestamp")
 	    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")

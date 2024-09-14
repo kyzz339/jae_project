@@ -1,17 +1,21 @@
 package com.springboot.project.service.impl;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,6 +62,7 @@ public class ChatServiceImpl implements ChatService{
 										.content(chatmessage.getContent())
 										.type(chatmessage.getType())
 										.fileUrl(chatmessage.getFileUrl())
+										.original_filename(chatmessage.getOriginal_filename())
 										.content(chatmessage.getContent())
 										.timestamp(chatmessage.getTimestamp())
 										.build();
@@ -72,12 +77,14 @@ public class ChatServiceImpl implements ChatService{
 		
 		for(ChatMessage x : chatMessage) {
 			ChatMessageDTO chatmessageDTO = ChatMessageDTO.builder()
+											.id(x.getId())
 											.roomId(x.getRoomId())
 											.sender(x.getSender())
 											.name(x.getName())
 											.content(x.getContent())
 											.type(x.getType())
 											.fileUrl(x.getFileUrl())
+											.original_filename(x.getOriginal_filename())
 											.timestamp(x.getTimestamp())
 											.build();
 			chatMessageDTO.add(chatmessageDTO);
@@ -87,7 +94,7 @@ public class ChatServiceImpl implements ChatService{
 		
 	}
 	
-	public ChatMessageDTO uploadfile(MultipartFile file , ChatMessageDTO messageDTO) {
+	public ChatMessageDTO uploadFile(MultipartFile file , ChatMessageDTO chatmessageDTO) {
 		
 		if(file.getSize() > MAX_FILE_SIZE) {
 			throw new IllegalArgumentException("파일 용량이 5MB를 넘을 수 없습니다.");
@@ -96,7 +103,7 @@ public class ChatServiceImpl implements ChatService{
 		//공백 및 특수문자 제거 , 보안을 위해 파일이름 변경
 		String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename().replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
 
-		Path filePath = Paths.get(uploadDir +"/"+messageDTO.getRoomId() +"/"+ messageDTO.getTimestamp() , fileName);
+		Path filePath = Paths.get(uploadDir +"/"+chatmessageDTO.getRoomId() +"/"+ chatmessageDTO.getTimestamp() , fileName);
 		
 		try {
 			//파일 경로가 존재하지 않으면 자동으로 경로생성
@@ -118,17 +125,66 @@ public class ChatServiceImpl implements ChatService{
 		    throw new IllegalArgumentException("허용되지 않은 파일 형식입니다.");
 		}
 		
-	    if (mimeType.startsWith("image")) {
-	    	messageDTO.setContent("이미지를 올렸습니다.");
-	        messageDTO.setType("image");
-	    } else {
-	    	messageDTO.setContent("파일을 올렸습니다.");
-	        messageDTO.setType("file");
-	    }
-	    messageDTO.setFileUrl("/uploads/"+  messageDTO.getRoomId() + "/"+messageDTO.getTimestamp() +"/"+fileName);
+		ObjectId objectId = new ObjectId();
+		chatmessageDTO.setId(objectId.toString());
 		
-		return messageDTO;
+	    if (mimeType.startsWith("image")) {
+	    	chatmessageDTO.setContent("이미지를 올렸습니다.");
+	    	chatmessageDTO.setType("image");
+	    } else {
+	    	chatmessageDTO.setContent("파일을 올렸습니다.");
+	    	chatmessageDTO.setType("file");
+	    }
+	    chatmessageDTO.setOriginal_filename(file.getOriginalFilename());
+	    chatmessageDTO.setFileUrl("/uploads/" +  chatmessageDTO.getRoomId() + "/"+chatmessageDTO.getTimestamp() +"/"+fileName);
+		
+		return chatmessageDTO;
 		
 	}
+	
+	public Resource downloadFile(String objectId , String filename) {
+		
+		try {
+			
+		ObjectId objectId_object = new ObjectId(objectId);
+		ChatMessage chatMessage = chatRepository.findById(objectId_object);	
+		
+		ChatMessageDTO chatMessageDTO = ChatMessageDTO.builder()
+										.roomId(chatMessage.getRoomId())
+										.timestamp(chatMessage.getTimestamp())
+										.build();
+										
+		Path filePath = Paths.get(uploadDir + "/" + chatMessageDTO.getRoomId() + "/" + chatMessageDTO.getTimestamp(),filename );
+		if(!Files.exists(filePath)) {
+			throw new FileNotFoundException("파일을 찾을 수 없습니다: " + filename);
+        }
+		
+		Resource resource = new UrlResource(filePath.toUri());
+		
+		if (!resource.exists() || !resource.isReadable()) {
+            throw new FileNotFoundException("파일을 읽을 수 없습니다: " + filename);
+        }
+		return resource;
+		
+		}catch (MalformedURLException e) {
+            throw new IllegalArgumentException("잘못된 파일 경로입니다: " + filename, e);
+        } catch (IOException e) {
+            throw new RuntimeException("파일을 로드하는 중 오류가 발생했습니다.", e);
+        }
+		
+	}
+	
+	public String originalFileName(String id) {
+		
+		ObjectId objectId = new ObjectId(id);
+		ChatMessage chatMessage = chatRepository.findById(objectId);
+		ChatMessageDTO chatMessageDTO = ChatMessageDTO.builder()
+										.original_filename(chatMessage.getOriginal_filename())
+										.build();
+		return chatMessageDTO.getOriginal_filename();
+		
+	}
+	
+	
 	
 }

@@ -22,6 +22,7 @@ public class ChatMessageDTO {
 	private String content;
 	private String type;
 	private String fileUrl;
+	private String original_filename;
 	private LocalDateTime timestamp;
 	
 }
