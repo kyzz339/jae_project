@@ -1,14 +1,13 @@
 package com.springboot.project.controller;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -109,7 +108,9 @@ public class ChatController {
 	//@GetMapping(value = "/enter/{roomId}")
 	@GetMapping("/rooms/{roomId}")
 	@ApiOperation(value = "채팅방 입장 , 채팅방 채팅 내용 불러오기" , notes = "채팅방 입장")
-	public ResponseEntity<List<ChatMessageDTO>> enter(@PathVariable int roomId) {
+	public ResponseEntity<Page<ChatMessageDTO>> enter(@PathVariable int roomId
+			,	@RequestParam(defaultValue = "0") int page,
+				@RequestParam(defaultValue = "10") int size) {
 		// 사용자가 해당 채팅방에 포함되어 있는지 확인
 	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
@@ -120,7 +121,8 @@ public class ChatController {
 		
 		//채팅 내용 뿌려주기
 	    //스크롤 위로 할 씨 추가적으로 fetch	
-		List<ChatMessageDTO> chatMessage = chatService.findChatMessageByroomId(roomId);
+	    Pageable pageable = PageRequest.of(page, size , Sort.by("timestamp").descending());
+		Page<ChatMessageDTO> chatMessage = chatService.findChatMessageByroomId(roomId , pageable );
 		return ResponseEntity.ok(chatMessage);
 		
 	}

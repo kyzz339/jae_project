@@ -7,15 +7,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,12 +73,25 @@ public class ChatServiceImpl implements ChatService{
 		return chatMessageDTO;
 	}
 	
-	public List<ChatMessageDTO> findChatMessageByroomId(int roomId){
+	public Page<ChatMessageDTO> findChatMessageByroomId(int roomId , Pageable pageable){
 		
-		List<ChatMessage> chatMessage = chatRepository.findAllByRoomId(roomId); 
-		List<ChatMessageDTO> chatMessageDTO = new ArrayList<>();
+		Page<ChatMessage> chatMessages = chatRepository.findAllByRoomId(roomId , pageable);
 		
-		for(ChatMessage x : chatMessage) {
+		List<ChatMessageDTO> chatMessageDTO = chatMessages.stream()
+											.map(chatMessage -> ChatMessageDTO.builder()
+													.id(chatMessage.getId())
+													.roomId(chatMessage.getRoomId())
+													.sender(chatMessage.getSender())
+													.content(chatMessage.getContent())
+													.type(chatMessage.getType())
+													.fileUrl(chatMessage.getFileUrl())
+													.original_filename(chatMessage.getOriginal_filename())
+													.timestamp(chatMessage.getTimestamp())
+													.build())
+												.collect(Collectors.toList());
+																
+		
+		/*for(ChatMessage x : chatMessage) {
 			ChatMessageDTO chatmessageDTO = ChatMessageDTO.builder()
 											.id(x.getId())
 											.roomId(x.getRoomId())
@@ -88,9 +104,9 @@ public class ChatServiceImpl implements ChatService{
 											.timestamp(x.getTimestamp())
 											.build();
 			chatMessageDTO.add(chatmessageDTO);
-		}
+		}*/
 		
-		return chatMessageDTO;
+		return new PageImpl<>(chatMessageDTO , pageable , chatMessages.getTotalElements());
 		
 	}
 	
