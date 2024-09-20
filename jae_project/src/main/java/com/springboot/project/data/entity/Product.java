@@ -35,8 +35,11 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long number;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    @Column(nullable = false)
+    private String title;
+    
+    @Column(nullable = false)
+    private String content;
 
     @Column(nullable = false)
     private Integer price;
@@ -54,7 +57,7 @@ public class Product {
     @Column(nullable = false , updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime updatedAt;
     
     @OneToOne(cascade = CascadeType.ALL , orphanRemoval = true)

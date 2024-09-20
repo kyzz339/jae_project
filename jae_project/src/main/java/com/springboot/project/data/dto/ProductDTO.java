@@ -19,7 +19,8 @@ import lombok.ToString;
 public class ProductDTO {
 
 	private Long number;
-	private String name;
+	private String title;
+	private String content;
 	private Integer price;
 	private Integer stock;
 	private String image_Url;
