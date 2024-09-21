@@ -18,7 +18,7 @@ import lombok.ToString;
 @Builder
 public class ProductDTO {
 
-	private Long number;
+	private Long id;
 	private String title;
 	private String content;
 	private Integer price;

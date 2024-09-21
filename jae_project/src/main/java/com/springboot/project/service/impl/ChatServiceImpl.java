@@ -89,23 +89,7 @@ public class ChatServiceImpl implements ChatService{
 													.timestamp(chatMessage.getTimestamp())
 													.build())
 												.collect(Collectors.toList());
-																
-		
-		/*for(ChatMessage x : chatMessage) {
-			ChatMessageDTO chatmessageDTO = ChatMessageDTO.builder()
-											.id(x.getId())
-											.roomId(x.getRoomId())
-											.sender(x.getSender())
-											.name(x.getName())
-											.content(x.getContent())
-											.type(x.getType())
-											.fileUrl(x.getFileUrl())
-											.original_filename(x.getOriginal_filename())
-											.timestamp(x.getTimestamp())
-											.build();
-			chatMessageDTO.add(chatmessageDTO);
-		}*/
-		
+
 		return new PageImpl<>(chatMessageDTO , pageable , chatMessages.getTotalElements());
 		
 	}

@@ -33,7 +33,7 @@ import lombok.Setter;
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long number;
+    private Long id;
 
     @Column(nullable = false)
     private String title;
