@@ -1,7 +1,8 @@
 package com.springboot.project.repository;
 
-import java.util.List;
-
+import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +13,8 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage , Str
 
 	public ChatMessage findByRoomId(int roomId);
 	
-	public List<ChatMessage> findAllByRoomId(int roomId);
+	public Page<ChatMessage> findAllByRoomId(int roomId , Pageable pageable);
+	
+	public ChatMessage findById(ObjectId objectId);
 
 }

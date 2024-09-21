@@ -1,14 +1,16 @@
 package com.springboot.project.controller;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.springboot.project.data.dto.ChatMessageDTO;
 import com.springboot.project.data.dto.ChatRoomDTO;
@@ -87,7 +90,7 @@ public class ChatController {
 	@PostMapping("/rooms/delete")
 	@ApiOperation(value = "채팅방 삭제" ,notes = "해당 채팅방 호스트만 사용 가능")
 	public ResponseEntity<ChatRoomDTO> deleteChatRoom(@RequestBody ChatRoomDTO chatRoomDTO) {
-		System.out.println(chatRoomDTO.getRoomId());
+		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
 	    
@@ -105,7 +108,9 @@ public class ChatController {
 	//@GetMapping(value = "/enter/{roomId}")
 	@GetMapping("/rooms/{roomId}")
 	@ApiOperation(value = "채팅방 입장 , 채팅방 채팅 내용 불러오기" , notes = "채팅방 입장")
-	public ResponseEntity<List<ChatMessageDTO>> enter(@PathVariable int roomId) {
+	public ResponseEntity<Page<ChatMessageDTO>> enter(@PathVariable int roomId
+			,	@RequestParam(defaultValue = "0") int page,
+				@RequestParam(defaultValue = "10") int size) {
 		// 사용자가 해당 채팅방에 포함되어 있는지 확인
 	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
@@ -116,8 +121,8 @@ public class ChatController {
 		
 		//채팅 내용 뿌려주기
 	    //스크롤 위로 할 씨 추가적으로 fetch	
-		List<ChatMessageDTO> chatMessage = chatService.findChatMessageByroomId(roomId);
-		
+	    Pageable pageable = PageRequest.of(page, size , Sort.by("timestamp").descending());
+		Page<ChatMessageDTO> chatMessage = chatService.findChatMessageByroomId(roomId , pageable );
 		return ResponseEntity.ok(chatMessage);
 		
 	}
@@ -126,7 +131,7 @@ public class ChatController {
 	//@PostMapping(value = "/message")
 	@PostMapping("/rooms/{roomId}/messages")
 	@ApiOperation(value = "메시지 전송 및 채팅 내용 저장" ,notes = "채팅 내용 저장")
-	public ResponseEntity<Void> message(@RequestBody ChatMessageDTO message) {
+	public ResponseEntity<ChatMessageDTO> message(@RequestBody ChatMessageDTO message) {
 		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		User user = (User) authentication.getPrincipal();
@@ -140,12 +145,15 @@ public class ChatController {
 				.roomId(message.getRoomId())
 				.sender(message.getSender())
 				.name(message.getName())
+				.type("txt")
 				.content(message.getContent())
 				.timestamp(LocalDateTime.now()).build();
 		
-		chatService.saveChat(chatMessage);
+		ChatMessageDTO chatMessageDTO =  chatService.saveChat(chatMessage);
 		
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		
+		
+		return ResponseEntity.ok(chatMessageDTO);
 	}
 	
 	//채팅방 초대
@@ -171,6 +179,7 @@ public class ChatController {
 								.roomId(roomId)
 								.content(email + "님이 입장하였습니다.")
 								.sender("SYSTEM")
+								.type("txt")
 								.timestamp(LocalDateTime.now())
 								.build();
 								
@@ -180,6 +189,7 @@ public class ChatController {
 								 .roomId(message.getRoomId())
 								 .sender(message.getSender())
 								 .content(message.getContent())
+								 .type("txt")
 								 .timestamp(message.getTimestamp())
 								 .build();
 		chatService.saveChat(chatMessage);
@@ -188,5 +198,65 @@ public class ChatController {
 		
 	}
 	
-	//파일 업로드 추가 합시다
+	//파일 업로드 추가
+	@PostMapping("/upload/{roomId}/file")
+	public ResponseEntity<?> uploadfile(MultipartFile file , @PathVariable int roomId) {
+		
+		try {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		
+		User user = (User) authentication.getPrincipal();
+		ChatMessageDTO messageDTO = ChatMessageDTO.builder()
+									.roomId(roomId)
+									.sender(user.getEmail())
+									.name(user.getName())
+									.timestamp(LocalDateTime.now())
+									.build();
+		messageDTO = chatService.uploadFile(file , messageDTO);
+		
+		template.convertAndSend("/sub/chat/room/" + messageDTO.getRoomId(), messageDTO);
+		
+		ChatMessage chatMessage = ChatMessage.builder()
+								.id(messageDTO.getId())
+								.roomId(messageDTO.getRoomId())
+								.sender(messageDTO.getSender())
+								.name(messageDTO.getName())
+								.content(messageDTO.getContent())
+								.type(messageDTO.getType())
+								.fileUrl(messageDTO.getFileUrl())
+								.original_filename(messageDTO.getOriginal_filename())
+								.timestamp(messageDTO.getTimestamp())
+								.build();
+		
+		chatService.saveChat(chatMessage);
+		
+		return ResponseEntity.ok(messageDTO);
+	}catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()); // 파일 크기 제한 등 예외 처리
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 업로드 중 오류가 발생했습니다.");
+    }
+	}
+	//파일 다운로드
+	@GetMapping("{id}/download/{filename}")
+	public ResponseEntity<Resource> downloadfile(@PathVariable String id , @PathVariable String filename){
+		
+		try {
+		Resource resource = chatService.downloadFile(id, filename);
+		
+		String originalFileName = chatService.originalFileName(id);
+		
+		return ResponseEntity.ok()
+				.contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + originalFileName + "\"")
+                .body(resource);
+		
+		}catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null); // 잘못된 요청 처리
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // 서버 오류 처리
+        }		
+	}
+	
+	//채팅 취소 추가
 }

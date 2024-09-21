@@ -31,6 +31,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 			.authorizeRequests()
 			.antMatchers("/sign-in").permitAll()
 			.antMatchers("/api/chat/**").authenticated() 
+			.antMatchers("/api/product/**").authenticated()
 			//허용 주소 추가
 			.anyRequest().permitAll()
 			.and()
