@@ -1,14 +1,9 @@
 package com.springboot.project.data.dto;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-
 import com.springboot.project.data.entity.ChatUser;
+import com.springboot.project.data.entity.Product;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,9 +17,10 @@ import lombok.ToString;
 @Builder
 public class ChatRoomDTO {
 
-	private int roomId;
+	private Long roomId;
 	private String name;
 	private String host;
+	private Product product;
     private List<ChatUser> chatUsers;
 	
 }

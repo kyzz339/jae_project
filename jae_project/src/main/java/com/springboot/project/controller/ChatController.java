@@ -109,7 +109,7 @@ public class ChatController {
 	//@GetMapping(value = "/enter/{roomId}")
 	@GetMapping("/rooms/{roomId}")
 	@ApiOperation(value = "채팅방 입장 , 채팅방 채팅 내용 불러오기" , notes = "채팅방 입장")
-	public ResponseEntity<Page<ChatMessageDTO>> enter(@PathVariable int roomId
+	public ResponseEntity<Page<ChatMessageDTO>> enter(@PathVariable Long roomId
 			,	@RequestParam(defaultValue = "0") int page,
 				@RequestParam(defaultValue = "20") int size) {
 		// 사용자가 해당 채팅방에 포함되어 있는지 확인
@@ -165,7 +165,7 @@ public class ChatController {
 	//@PostMapping("/invite/{roomId}/{email}")
 	@PostMapping("/rooms/{roomId}/{email}/invite")
 	@ApiOperation(value = "채팅방 초대 및 안내 메시지 전송" ,notes = "채팅방 초대")
-	public ResponseEntity<?> inviteChatUser(@PathVariable int roomId ,@PathVariable String email) {
+	public ResponseEntity<?> inviteChatUser(@PathVariable Long roomId ,@PathVariable String email) {
 		
 		//해당 아이디 회원으로 존재하는지 확인
 		
@@ -206,7 +206,7 @@ public class ChatController {
 	//파일 업로드 추가
 	@PostMapping("/upload/{roomId}/file")
 	@ApiOperation(value = "파일 업로드" ,notes = "파일 업로드")
-	public ResponseEntity<?> uploadfile(MultipartFile file , @PathVariable int roomId) {
+	public ResponseEntity<?> uploadfile(MultipartFile file , @PathVariable Long roomId) {
 		
 		try {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -15,9 +15,9 @@ public interface ChatService {
 	//채팅 메시지 찾기
 	public ChatMessageDTO findChatMessage(String id);
 	//채팅방 입장
-	public ChatMessageDTO findRoomByroomId(int roomId);
+	public ChatMessageDTO findRoomByroomId(Long roomId);
 	//채팅방 내용 fetch
-	public Page<ChatMessageDTO> findChatMessageByroomId(int roomId , Pageable pageable);
+	public Page<ChatMessageDTO> findChatMessageByroomId(Long roomId , Pageable pageable);
 	//파일 업로드
 	public ChatMessageDTO uploadFile(MultipartFile file , ChatMessageDTO messageDTO);
 	//파일 다운로드

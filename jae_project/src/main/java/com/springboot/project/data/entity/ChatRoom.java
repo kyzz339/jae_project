@@ -30,7 +30,7 @@ import lombok.Setter;
 public class ChatRoom {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int roomId;
+	private Long roomId;
 	
 	@Column
 	private String name;
@@ -41,6 +41,7 @@ public class ChatRoom {
 	@OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true , fetch = FetchType.EAGER)
     private List<ChatUser> chatUsers;
 	
-	@OneToOne(mappedBy = "chatRoom")
+	@OneToOne
+    @JoinColumn(name = "product_id", referencedColumnName = "id", nullable = true)
 	private Product product;
 }

@@ -40,7 +40,7 @@ public class ChatServiceImpl implements ChatService{
 	@Value("${uploadDir}")
 	String uploadDir; 
 	
-	public ChatMessageDTO findRoomByroomId(int roomId) {
+	public ChatMessageDTO findRoomByroomId(Long roomId) {
 		
 		ChatMessage chatMessage = chatRepository.findByRoomId(roomId);
 		
@@ -99,7 +99,7 @@ public class ChatServiceImpl implements ChatService{
 		return chatMessageDTO;
 	}
 	
-	public Page<ChatMessageDTO> findChatMessageByroomId(int roomId , Pageable pageable){
+	public Page<ChatMessageDTO> findChatMessageByroomId(Long roomId , Pageable pageable){
 		
 		Page<ChatMessage> chatMessages = chatRepository.findAllByRoomId(roomId , pageable);
 		

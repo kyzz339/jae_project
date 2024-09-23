@@ -21,8 +21,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.springboot.project.data.dto.ChatRoomDTO;
 import com.springboot.project.data.dto.ProductDTO;
 import com.springboot.project.data.entity.User;
+import com.springboot.project.service.ChatRoomService;
 import com.springboot.project.service.ProductService;
 
 import io.swagger.annotations.ApiOperation;
@@ -32,16 +34,18 @@ import io.swagger.annotations.ApiOperation;
 public class ProductController {
 
 	private final ProductService productService;
+	private final ChatRoomService chatRoomService;
 
 	@Autowired
-	public ProductController(ProductService productService) {
+	public ProductController(ProductService productService , ChatRoomService chatRoomService) {
 		this.productService = productService;
+		this.chatRoomService = chatRoomService;
 	}
 
 	@GetMapping("/list")
 	@ApiOperation(value = "상품 조회 리스트", notes = "상품 조회 리스트")
 	public ResponseEntity<Page<ProductDTO>> findProductList(@RequestParam(required = false) String title,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "16") int size) {
 
 		Pageable pageable = PageRequest.of(page, size);
 
@@ -59,8 +63,10 @@ public class ProductController {
 		User user = (User) authentication.getPrincipal();
 
 		productDTO.setUser_email(user.getEmail());
-
+		
 		ProductDTO createdProduct = productService.createProduct(productDTO, file);
+		
+		ChatRoomDTO chatRoomDTO = chatRoomService.createProductChatRoom(createdProduct , createdProduct.getTitle() + "채팅방");
 
 		return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
 

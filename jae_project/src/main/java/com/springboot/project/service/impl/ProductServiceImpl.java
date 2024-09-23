@@ -103,9 +103,10 @@ public class ProductServiceImpl implements ProductService{
 				.createdAt(time)
 				.build();
 		
-		productRepository.save(product);
+		product = productRepository.save(product);
 		
 		ProductDTO savedProductDTO =  ProductDTO.builder()
+									.id(product.getId())
 									.title(product.getTitle())
 									.content(product.getContent())
 									.price(product.getPrice())
