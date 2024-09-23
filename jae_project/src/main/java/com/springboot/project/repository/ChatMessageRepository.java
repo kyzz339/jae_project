@@ -16,5 +16,7 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage , Str
 	public Page<ChatMessage> findAllByRoomId(int roomId , Pageable pageable);
 	
 	public ChatMessage findById(ObjectId objectId);
+	
+	public ChatMessage findOneById(String id);
 
 }

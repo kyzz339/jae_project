@@ -54,8 +54,9 @@ public class SignController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // 실패 시 401 Unauthorized 반환
         }
 	}
-		
 	
-	
+	//SMTP 쉐이킹 한번 해봅시다.
+	//sns 로그인도 되면 추가
+	//실 도메인 만들면 이메일도 추가해봅시다
 	
 }

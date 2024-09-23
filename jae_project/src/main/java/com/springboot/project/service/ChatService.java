@@ -12,6 +12,8 @@ public interface ChatService {
 
 	//채팅내용 저장
 	public ChatMessageDTO saveChat(ChatMessage chatmessage);
+	//채팅 메시지 찾기
+	public ChatMessageDTO findChatMessage(String id);
 	//채팅방 입장
 	public ChatMessageDTO findRoomByroomId(int roomId);
 	//채팅방 내용 fetch
@@ -22,5 +24,6 @@ public interface ChatService {
 	public Resource downloadFile(String objectId , String filename);
 	//original file name
 	public String originalFileName(String id);
-	
+	//메시지 삭제(취소)
+	public ChatMessageDTO deleteMessage(ChatMessageDTO chatMessageDTO);
 }

@@ -17,4 +17,6 @@ public interface ProductService {
 	public ProductDTO updateProduct(ProductDTO productDTO , MultipartFile file);
 	
 	public ProductDTO deleteProduct(ProductDTO productDTO);
+	
+	//상품 관련 채팅방 만들기
 }

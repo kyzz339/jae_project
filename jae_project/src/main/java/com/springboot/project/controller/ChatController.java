@@ -110,7 +110,7 @@ public class ChatController {
 	@ApiOperation(value = "채팅방 입장 , 채팅방 채팅 내용 불러오기" , notes = "채팅방 입장")
 	public ResponseEntity<Page<ChatMessageDTO>> enter(@PathVariable int roomId
 			,	@RequestParam(defaultValue = "0") int page,
-				@RequestParam(defaultValue = "10") int size) {
+				@RequestParam(defaultValue = "20") int size) {
 		// 사용자가 해당 채팅방에 포함되어 있는지 확인
 	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
@@ -121,7 +121,7 @@ public class ChatController {
 		
 		//채팅 내용 뿌려주기
 	    //스크롤 위로 할 씨 추가적으로 fetch	
-	    Pageable pageable = PageRequest.of(page, size , Sort.by("timestamp").descending());
+	    Pageable pageable = PageRequest.of(page, size );
 		Page<ChatMessageDTO> chatMessage = chatService.findChatMessageByroomId(roomId , pageable );
 		return ResponseEntity.ok(chatMessage);
 		
@@ -138,8 +138,9 @@ public class ChatController {
 		
 		message.setName(user.getName());
 		message.setSender(user.getEmail());
+		message.setTimestamp(LocalDateTime.now());
 		
-		template.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+		
 		
 		ChatMessage chatMessage = ChatMessage.builder()
 				.roomId(message.getRoomId())
@@ -147,10 +148,11 @@ public class ChatController {
 				.name(message.getName())
 				.type("txt")
 				.content(message.getContent())
-				.timestamp(LocalDateTime.now()).build();
+				.timestamp(message.getTimestamp())
+				.build();
 		
 		ChatMessageDTO chatMessageDTO =  chatService.saveChat(chatMessage);
-		
+		template.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
 		
 		
 		return ResponseEntity.ok(chatMessageDTO);
@@ -200,6 +202,7 @@ public class ChatController {
 	
 	//파일 업로드 추가
 	@PostMapping("/upload/{roomId}/file")
+	@ApiOperation(value = "파일 업로드" ,notes = "파일 업로드")
 	public ResponseEntity<?> uploadfile(MultipartFile file , @PathVariable int roomId) {
 		
 		try {
@@ -239,6 +242,7 @@ public class ChatController {
 	}
 	//파일 다운로드
 	@GetMapping("{id}/download/{filename}")
+	@ApiOperation(value = "파일 다운로드" , notes = "파일 다운로드")
 	public ResponseEntity<Resource> downloadfile(@PathVariable String id , @PathVariable String filename){
 		
 		try {
@@ -258,5 +262,26 @@ public class ChatController {
         }		
 	}
 	
-	//채팅 취소 추가
+	//채팅 취소 추가 정합성 떄문에 디비에서 지우지는 않고 취소 및 메시지 삭제 메시지로 수정예정
+	@PostMapping("/delete/{id}")
+	@ApiOperation(value = "메시지 삭제(취소)" , notes = "메시지 삭제(취소)")
+	public ResponseEntity<ChatMessageDTO> deleteMessage(@PathVariable String id){
+		
+		ChatMessageDTO existingChatMessageDTO = chatService.findChatMessage(id);
+		
+		if(existingChatMessageDTO == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		
+		existingChatMessageDTO.setContent("삭제된 메시지 입니다.");
+		existingChatMessageDTO.setType("deleted");
+		existingChatMessageDTO.setFileUrl(null);
+		existingChatMessageDTO.setOriginal_filename(null);;
+		
+		template.convertAndSend("/sub/chat/room/" + existingChatMessageDTO.getRoomId(), existingChatMessageDTO);
+		
+		return ResponseEntity.ok(chatService.deleteMessage(existingChatMessageDTO));
+		
+	}
+	
 }
