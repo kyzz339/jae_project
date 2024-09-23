@@ -2,6 +2,7 @@ package com.springboot.project.controller;
 
 import java.time.LocalDateTime;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -122,6 +123,7 @@ public class ChatController {
 		//채팅 내용 뿌려주기
 	    //스크롤 위로 할 씨 추가적으로 fetch	
 	    Pageable pageable = PageRequest.of(page, size );
+	    
 		Page<ChatMessageDTO> chatMessage = chatService.findChatMessageByroomId(roomId , pageable );
 		return ResponseEntity.ok(chatMessage);
 		
@@ -136,13 +138,14 @@ public class ChatController {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		User user = (User) authentication.getPrincipal();
 		
+		ObjectId objectId = new ObjectId();
+		message.setId(objectId.toString());
 		message.setName(user.getName());
 		message.setSender(user.getEmail());
 		message.setTimestamp(LocalDateTime.now());
 		
-		
-		
 		ChatMessage chatMessage = ChatMessage.builder()
+				.id(message.getId())
 				.roomId(message.getRoomId())
 				.sender(message.getSender())
 				.name(message.getName())
