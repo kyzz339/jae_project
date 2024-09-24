@@ -8,8 +8,8 @@ import java.util.List;
 
 
 @Repository
-public interface ChatRoomRepository extends JpaRepository<ChatRoom, Integer> , ChatRoomRepositoryCustom{
+public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> , ChatRoomRepositoryCustom{
 	
-	public ChatRoom findByRoomId(int roomId); 
+	public ChatRoom findByRoomId(Long roomId); 
 	
 }

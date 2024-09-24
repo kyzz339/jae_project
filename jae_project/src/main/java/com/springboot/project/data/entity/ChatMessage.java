@@ -30,7 +30,7 @@ public class ChatMessage {
 		private String id;
 		
 		@Field("roomId")
-	    private int roomId;
+	    private Long roomId;
 
 	    @Field("sender")
 	    private String sender;

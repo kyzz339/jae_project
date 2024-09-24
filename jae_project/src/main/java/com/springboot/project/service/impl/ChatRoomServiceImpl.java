@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 
 import com.springboot.project.data.dto.ChatRoomDTO;
 import com.springboot.project.data.dto.ChatUserDTO;
+import com.springboot.project.data.dto.ProductDTO;
 import com.springboot.project.data.entity.ChatRoom;
 import com.springboot.project.data.entity.ChatUser;
+import com.springboot.project.data.entity.Product;
 import com.springboot.project.repository.ChatRoomRepository;
 import com.springboot.project.repository.ChatUserRepository;
 import com.springboot.project.service.ChatRoomService;
@@ -67,8 +69,39 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 		return chatroomDTO;
 	}
 	
+	//채팅방 생성
+		public ChatRoomDTO createProductChatRoom(ProductDTO productDTO , String roomName) {
+			
+			Product product = Product.builder()
+							.id(productDTO.getId())
+							.user_email(productDTO.getUser_email())
+							.build();
+							
+			ChatRoom chatroom = ChatRoom.builder()
+					.name(roomName)
+					.host(productDTO.getUser_email())
+					.product(product)
+					.build();
+			
+			chatRoomRepository.save(chatroom);
+			
+			ChatRoomDTO chatroomDTO = ChatRoomDTO.builder()
+						.roomId(chatroom.getRoomId())
+						.name(chatroom.getName())
+						.product(product)
+						.build();
+			
+			ChatUser chatUser =  ChatUser.builder()
+					.email(productDTO.getUser_email()) // jwt 로그인 본인 이메일로 변경 예정
+					.chatRoom(chatroom)
+					.build();
+			chatUserRepository.save(chatUser);
+			
+			return chatroomDTO;
+		}
+	
 	//채팅방 삭제
-	public ChatRoomDTO deleteChatRoom(int roomId) {
+	public ChatRoomDTO deleteChatRoom(Long roomId) {
 		
 		ChatRoom deletedChattRoom = chatRoomRepository.findByRoomId(roomId);
 		ChatRoomDTO chatRoomDTO = ChatRoomDTO.builder()
@@ -82,7 +115,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 	}
 	
 	//채팅방 초대
-	public ChatUserDTO inviteChatUser(int roomId , String email) {
+	public ChatUserDTO inviteChatUser(Long roomId , String email) {
 		
 		ChatRoom chatRoom = chatRoomRepository.findByRoomId(roomId);
 		
@@ -104,7 +137,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 	}
 	
 	//채팅방 사용자 존재 확인
-	public boolean isUserInRoom(String email ,int roomId) {
+	public boolean isUserInRoom(String email ,Long roomId) {
 		
 		boolean Chk = chatUserRepository.existsByEmailAndChatRoom_RoomId(email , roomId);
 		
@@ -113,7 +146,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 	}
 	
 	//host 사용자 확인
-	public String isHostChatRoom(int roomId) {
+	public String isHostChatRoom(Long roomId) {
 		
 		ChatRoom chatRoom = chatRoomRepository.findByRoomId(roomId);
 		

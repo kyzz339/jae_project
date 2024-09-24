@@ -2,6 +2,7 @@ package com.springboot.project.controller;
 
 import java.time.LocalDateTime;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -108,9 +109,9 @@ public class ChatController {
 	//@GetMapping(value = "/enter/{roomId}")
 	@GetMapping("/rooms/{roomId}")
 	@ApiOperation(value = "채팅방 입장 , 채팅방 채팅 내용 불러오기" , notes = "채팅방 입장")
-	public ResponseEntity<Page<ChatMessageDTO>> enter(@PathVariable int roomId
+	public ResponseEntity<Page<ChatMessageDTO>> enter(@PathVariable Long roomId
 			,	@RequestParam(defaultValue = "0") int page,
-				@RequestParam(defaultValue = "10") int size) {
+				@RequestParam(defaultValue = "20") int size) {
 		// 사용자가 해당 채팅방에 포함되어 있는지 확인
 	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
@@ -121,7 +122,8 @@ public class ChatController {
 		
 		//채팅 내용 뿌려주기
 	    //스크롤 위로 할 씨 추가적으로 fetch	
-	    Pageable pageable = PageRequest.of(page, size , Sort.by("timestamp").descending());
+	    Pageable pageable = PageRequest.of(page, size );
+	    
 		Page<ChatMessageDTO> chatMessage = chatService.findChatMessageByroomId(roomId , pageable );
 		return ResponseEntity.ok(chatMessage);
 		
@@ -136,21 +138,24 @@ public class ChatController {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		User user = (User) authentication.getPrincipal();
 		
+		ObjectId objectId = new ObjectId();
+		message.setId(objectId.toString());
 		message.setName(user.getName());
 		message.setSender(user.getEmail());
-		
-		template.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+		message.setTimestamp(LocalDateTime.now());
 		
 		ChatMessage chatMessage = ChatMessage.builder()
+				.id(message.getId())
 				.roomId(message.getRoomId())
 				.sender(message.getSender())
 				.name(message.getName())
 				.type("txt")
 				.content(message.getContent())
-				.timestamp(LocalDateTime.now()).build();
+				.timestamp(message.getTimestamp())
+				.build();
 		
 		ChatMessageDTO chatMessageDTO =  chatService.saveChat(chatMessage);
-		
+		template.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
 		
 		
 		return ResponseEntity.ok(chatMessageDTO);
@@ -160,7 +165,7 @@ public class ChatController {
 	//@PostMapping("/invite/{roomId}/{email}")
 	@PostMapping("/rooms/{roomId}/{email}/invite")
 	@ApiOperation(value = "채팅방 초대 및 안내 메시지 전송" ,notes = "채팅방 초대")
-	public ResponseEntity<?> inviteChatUser(@PathVariable int roomId ,@PathVariable String email) {
+	public ResponseEntity<?> inviteChatUser(@PathVariable Long roomId ,@PathVariable String email) {
 		
 		//해당 아이디 회원으로 존재하는지 확인
 		
@@ -200,7 +205,8 @@ public class ChatController {
 	
 	//파일 업로드 추가
 	@PostMapping("/upload/{roomId}/file")
-	public ResponseEntity<?> uploadfile(MultipartFile file , @PathVariable int roomId) {
+	@ApiOperation(value = "파일 업로드" ,notes = "파일 업로드")
+	public ResponseEntity<?> uploadfile(MultipartFile file , @PathVariable Long roomId) {
 		
 		try {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -239,6 +245,7 @@ public class ChatController {
 	}
 	//파일 다운로드
 	@GetMapping("{id}/download/{filename}")
+	@ApiOperation(value = "파일 다운로드" , notes = "파일 다운로드")
 	public ResponseEntity<Resource> downloadfile(@PathVariable String id , @PathVariable String filename){
 		
 		try {
@@ -258,5 +265,26 @@ public class ChatController {
         }		
 	}
 	
-	//채팅 취소 추가
+	//채팅 취소 추가 정합성 떄문에 디비에서 지우지는 않고 취소 및 메시지 삭제 메시지로 수정예정
+	@PostMapping("/delete/{id}")
+	@ApiOperation(value = "메시지 삭제(취소)" , notes = "메시지 삭제(취소)")
+	public ResponseEntity<ChatMessageDTO> deleteMessage(@PathVariable String id){
+		
+		ChatMessageDTO existingChatMessageDTO = chatService.findChatMessage(id);
+		
+		if(existingChatMessageDTO == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		
+		existingChatMessageDTO.setContent("삭제된 메시지 입니다.");
+		existingChatMessageDTO.setType("deleted");
+		existingChatMessageDTO.setFileUrl(null);
+		existingChatMessageDTO.setOriginal_filename(null);;
+		
+		template.convertAndSend("/sub/chat/room/" + existingChatMessageDTO.getRoomId(), existingChatMessageDTO);
+		
+		return ResponseEntity.ok(chatService.deleteMessage(existingChatMessageDTO));
+		
+	}
+	
 }

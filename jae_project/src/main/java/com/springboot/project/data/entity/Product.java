@@ -59,10 +59,5 @@ public class Product {
 
     @Column(nullable = true)
     private LocalDateTime updatedAt;
-    
-    @OneToOne(cascade = CascadeType.ALL , orphanRemoval = true)
-    @JoinColumn(name = "roomId", nullable = true)
-    //상품과 연관없는 채팅방 때문에 null 가능
-    private ChatRoom chatRoom;
 
 }

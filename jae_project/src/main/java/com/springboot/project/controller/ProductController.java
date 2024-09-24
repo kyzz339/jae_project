@@ -21,8 +21,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.springboot.project.data.dto.ChatRoomDTO;
 import com.springboot.project.data.dto.ProductDTO;
 import com.springboot.project.data.entity.User;
+import com.springboot.project.service.ChatRoomService;
 import com.springboot.project.service.ProductService;
 
 import io.swagger.annotations.ApiOperation;
@@ -32,96 +34,102 @@ import io.swagger.annotations.ApiOperation;
 public class ProductController {
 
 	private final ProductService productService;
-	
+	private final ChatRoomService chatRoomService;
+
 	@Autowired
-	public ProductController(ProductService productService) {
+	public ProductController(ProductService productService , ChatRoomService chatRoomService) {
 		this.productService = productService;
+		this.chatRoomService = chatRoomService;
 	}
-	
+
 	@GetMapping("/list")
-	@ApiOperation(value ="상품 조회 리스트" ,notes = "상품 조회 리스트")
-	public ResponseEntity<Page<ProductDTO>> findProductList(
-											@RequestParam(required = false) String title,
-											@RequestParam(defaultValue = "0") int page,
-											@RequestParam(defaultValue = "10") int size){
-		
+	@ApiOperation(value = "상품 조회 리스트", notes = "상품 조회 리스트")
+	public ResponseEntity<Page<ProductDTO>> findProductList(@RequestParam(required = false) String title,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "16") int size) {
+
 		Pageable pageable = PageRequest.of(page, size);
-		
+
 		Page<ProductDTO> productList = productService.findProductList(title, pageable);
-		
+
 		return ResponseEntity.ok(productList);
 	}
-	
-	@PostMapping(value =  "/create" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "상품등록" , notes = "상품 등록")
-	//파일 업로드와 JSON 데이터 같은 복합적인 요청을 처리할 때 @RequestPart 사용
-	public ResponseEntity<ProductDTO> CreateProduct(@RequestPart("product") ProductDTO productDTO ,
-													 @RequestPart(value = "image" , required = false) MultipartFile file){
+
+	@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "상품등록", notes = "상품 등록")
+	// 파일 업로드와 JSON 데이터 같은 복합적인 요청을 처리할 때 @RequestPart 사용
+	public ResponseEntity<ProductDTO> CreateProduct(@RequestPart("product") ProductDTO productDTO,
+			@RequestPart(value = "image", required = false) MultipartFile file) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-	    User user = (User) authentication.getPrincipal();
-	    
-	    productDTO.setUser_email(user.getEmail());
-	    
-	    ProductDTO createdProduct = productService.createProduct(productDTO , file);
-	    
-	    return new ResponseEntity<>(createdProduct , HttpStatus.CREATED);
+		User user = (User) authentication.getPrincipal();
+
+		productDTO.setUser_email(user.getEmail());
 		
+		ProductDTO createdProduct = productService.createProduct(productDTO, file);
+		
+		ChatRoomDTO chatRoomDTO = chatRoomService.createProductChatRoom(createdProduct , createdProduct.getTitle() + "채팅방");
+
+		return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
+
 	}
-	
+
 	@GetMapping(value = "/find/{id}")
-	@ApiOperation(value = "상품조회" , notes = "상품 조회")
-	public ResponseEntity<ProductDTO> findProductOne(@PathVariable Long id){
-		
+	@ApiOperation(value = "상품조회", notes = "상품 조회")
+	public ResponseEntity<ProductDTO> findProductOne(@PathVariable Long id) {
+
 		ProductDTO productDTO = productService.findProductOne(id);
-		if(productDTO == null) {
+		if (productDTO == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		
+
 		return ResponseEntity.ok(productDTO);
 	}
-	
+
 	@PostMapping("/delete/{id}")
-	@ApiOperation(value = "상품 삭제" , notes = "상품 삭제")
-	public ResponseEntity<ProductDTO> deleteProduct(@PathVariable Long id){
-		
+	@ApiOperation(value = "상품 삭제", notes = "상품 삭제")
+	public ResponseEntity<ProductDTO> deleteProduct(@PathVariable Long id) {
+
 		ProductDTO existingProduct = productService.findProductOne(id);
-		if(existingProduct == null) {
+		if (existingProduct == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-	    User user = (User) authentication.getPrincipal();
-	    if(!user.getEmail().equals(existingProduct.getUser_email())) {
-	    	return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-	    }
-		
+		User user = (User) authentication.getPrincipal();
+		if (!user.getEmail().equals(existingProduct.getUser_email())) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
 		ProductDTO productDTO = productService.deleteProduct(existingProduct);
-		if(productDTO == null) {
+		if (productDTO == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		return ResponseEntity.ok(productDTO);
-		
+
 	}
-	
+
 	@PostMapping("/update")
-	@ApiOperation(value = "상품 수정" , notes = "상품 수정")
-	public ResponseEntity<ProductDTO> updateProduct(@RequestPart("product") ProductDTO productDTO ,
-			 										@RequestPart(value = "image" , required = false) MultipartFile file){
-		
+	@ApiOperation(value = "상품 수정", notes = "상품 수정")
+	public ResponseEntity<ProductDTO> updateProduct(@RequestPart("product") ProductDTO productDTO,
+			@RequestPart(value = "image", required = false) MultipartFile file) {
+
 		ProductDTO existingProductDTO = productService.findProductOne(productDTO.getId());
-		
-		if(existingProductDTO == null) {
+
+		if (existingProductDTO == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		
+
 		existingProductDTO.setTitle(productDTO.getTitle());
 		existingProductDTO.setContent(productDTO.getContent());
 		existingProductDTO.setPrice(productDTO.getPrice());
 		existingProductDTO.setStock(productDTO.getStock());
 		existingProductDTO.setUpdatedAt(LocalDateTime.now());
-		
+
 		ProductDTO updatedProductDTO = productService.updateProduct(existingProductDTO, file);
-		
+
 		return ResponseEntity.ok(updatedProductDTO);
-		
+
 	}
+	
+	//상품 관련된 채팅방 입장 및 참여자 설정
+	//상품 입잘
+	
 }

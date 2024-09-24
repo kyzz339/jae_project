@@ -11,10 +11,12 @@ import com.springboot.project.data.entity.ChatMessage;
 @Repository
 public interface ChatMessageRepository extends MongoRepository<ChatMessage , String>{
 
-	public ChatMessage findByRoomId(int roomId);
+	public ChatMessage findByRoomId(Long roomId);
 	
-	public Page<ChatMessage> findAllByRoomId(int roomId , Pageable pageable);
+	public Page<ChatMessage> findAllByRoomId(Long roomId , Pageable pageable);
 	
 	public ChatMessage findById(ObjectId objectId);
+	
+	public ChatMessage findOneById(String id);
 
 }

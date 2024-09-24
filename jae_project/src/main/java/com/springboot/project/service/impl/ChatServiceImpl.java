@@ -7,7 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -38,7 +40,7 @@ public class ChatServiceImpl implements ChatService{
 	@Value("${uploadDir}")
 	String uploadDir; 
 	
-	public ChatMessageDTO findRoomByroomId(int roomId) {
+	public ChatMessageDTO findRoomByroomId(Long roomId) {
 		
 		ChatMessage chatMessage = chatRepository.findByRoomId(roomId);
 		
@@ -52,6 +54,30 @@ public class ChatServiceImpl implements ChatService{
 		
 		
 		return chatmessageDTO;
+	}
+	
+	public ChatMessageDTO findChatMessage(String id) {
+		
+		ChatMessage chatMessage = chatRepository.findOneById(id);
+		
+		if(chatMessage == null) {
+			throw new NoSuchElementException("해당 메시지는 존재하지 않습니다.");
+		}
+		
+		ChatMessageDTO chatMessageDTO = ChatMessageDTO.builder()
+										.id(chatMessage.getId())
+										.roomId(chatMessage.getRoomId())
+										.sender(chatMessage.getSender())
+										.name(chatMessage.getName())
+										.content(chatMessage.getContent())
+										.type(chatMessage.getType())
+										.fileUrl(chatMessage.getFileUrl())
+										.original_filename(chatMessage.getOriginal_filename())
+										.timestamp(chatMessage.getTimestamp())
+										.build();
+		
+		return chatMessageDTO;
+		
 	}
 	
 	public ChatMessageDTO saveChat(ChatMessage chatmessage) {
@@ -73,7 +99,7 @@ public class ChatServiceImpl implements ChatService{
 		return chatMessageDTO;
 	}
 	
-	public Page<ChatMessageDTO> findChatMessageByroomId(int roomId , Pageable pageable){
+	public Page<ChatMessageDTO> findChatMessageByroomId(Long roomId , Pageable pageable){
 		
 		Page<ChatMessage> chatMessages = chatRepository.findAllByRoomId(roomId , pageable);
 		
@@ -82,14 +108,16 @@ public class ChatServiceImpl implements ChatService{
 													.id(chatMessage.getId())
 													.roomId(chatMessage.getRoomId())
 													.sender(chatMessage.getSender())
+													.name(chatMessage.getName())
 													.content(chatMessage.getContent())
 													.type(chatMessage.getType())
 													.fileUrl(chatMessage.getFileUrl())
 													.original_filename(chatMessage.getOriginal_filename())
 													.timestamp(chatMessage.getTimestamp())
 													.build())
+												.sorted(Comparator.comparing(ChatMessageDTO::getTimestamp))
 												.collect(Collectors.toList());
-
+		
 		return new PageImpl<>(chatMessageDTO , pageable , chatMessages.getTotalElements());
 		
 	}
@@ -184,6 +212,26 @@ public class ChatServiceImpl implements ChatService{
 		return chatMessageDTO.getOriginal_filename();
 		
 	}
+	
+	public ChatMessageDTO deleteMessage(ChatMessageDTO updateMessageDTO) {
+		
+		ChatMessage chatMessage = ChatMessage.builder()
+								.id(updateMessageDTO.getId())
+								.roomId(updateMessageDTO.getRoomId())
+								.sender(updateMessageDTO.getSender())
+								.name(updateMessageDTO.getName())
+								.content(updateMessageDTO.getContent())
+								.type(updateMessageDTO.getType())
+								.fileUrl(updateMessageDTO.getFileUrl())
+								.original_filename(updateMessageDTO.getOriginal_filename())
+								.timestamp(updateMessageDTO.getTimestamp())
+								.build();
+								
+		chatRepository.save(chatMessage);
+		
+		return updateMessageDTO;
+		
+	} 
 	
 	
 	
