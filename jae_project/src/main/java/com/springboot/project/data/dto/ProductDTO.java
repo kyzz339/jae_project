@@ -27,6 +27,6 @@ public class ProductDTO {
 	private String user_email;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
-	private int chatRoomId;
+	private Long chatRoomId;
 	
 }

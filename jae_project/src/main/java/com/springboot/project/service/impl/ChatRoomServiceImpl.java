@@ -29,16 +29,17 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 	ChatUserRepository chatUserRepository;
 	
 	//본인 채팅방 찾기
-	public Page<ChatRoomDTO> findMyChatRoom(String email , Pageable pageable){
+	public Page<ChatRoomDTO> findMyChatRoom(String email ,String type ,Pageable pageable){
 		//query DSL로 개인 이메일로 roomid 조회
 		
-		Page<ChatRoom> chatRooms = chatRoomRepository.mychatRooms(email , pageable);
+		Page<ChatRoom> chatRooms = chatRoomRepository.mychatRooms(email,type , pageable);
 		
 		List<ChatRoomDTO> chatRoomDTO = chatRooms.stream()
 		        .map(chatRoom -> ChatRoomDTO.builder()
 		                .roomId(chatRoom.getRoomId())
 		                .name(chatRoom.getName())
 		                .host(chatRoom.getHost())
+		                .product_id(chatRoom.getRoomId())
 		                .build())
 		            .collect(Collectors.toList());
 		
@@ -51,6 +52,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 		ChatRoom chatroom = ChatRoom.builder()
 				.name(roomName)
 				.host(email)
+				.type("private")
 				.build();
 		
 		chatRoomRepository.save(chatroom);
@@ -64,6 +66,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 				.email(email) // jwt 로그인 본인 이메일로 변경 예정
 				.chatRoom(chatroom)
 				.build();
+		
 		chatUserRepository.save(chatUser);
 		
 		return chatroomDTO;
@@ -88,7 +91,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 			ChatRoomDTO chatroomDTO = ChatRoomDTO.builder()
 						.roomId(chatroom.getRoomId())
 						.name(chatroom.getName())
-						.product(product)
+						.product_id(product.getId())
 						.build();
 			
 			ChatUser chatUser =  ChatUser.builder()

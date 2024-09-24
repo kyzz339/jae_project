@@ -38,10 +38,13 @@ public class ChatRoom {
 	@Column
 	private String host;
 	
+	@Column
+	private String type;
+	
 	@OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true , fetch = FetchType.EAGER)
     private List<ChatUser> chatUsers;
 	
-	@OneToOne
+	@OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "product_id", referencedColumnName = "id", nullable = true)
 	private Product product;
 }

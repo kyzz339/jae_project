@@ -56,23 +56,23 @@ public class ChatController {
 	@GetMapping("/rooms")
 	@ApiOperation(value = "사용자가 포함된 채팅방 리스트" , notes = "사용자가 참가한 채팅방 리스트")
 	public ResponseEntity<Page<ChatRoomDTO>> myChatRoomList(
+			@RequestParam String type,
 			@RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size
 			) {
-		
+		System.out.println(type);
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
 		//페이징 추가합시다
 	    Pageable pageable = PageRequest.of(page, size);
 	    
-		Page<ChatRoomDTO> chatList = chatRoomService.findMyChatRoom(user.getEmail() , pageable);
+		Page<ChatRoomDTO> chatList = chatRoomService.findMyChatRoom(user.getEmail(), type , pageable);
 		
 		return ResponseEntity.ok(chatList);
 
 	}
 
 	// 채팅방 만들기
-	//@PostMapping("/chatRoomCreate")
 	@PostMapping("/rooms/create")
 	@ApiOperation(value = "채팅방 만들기" ,notes = "채팅방 새로 만들기")
 	public ResponseEntity<ChatRoomDTO> CreateRoom(@RequestBody ChatRoomDTO chatroomDTO) {
@@ -87,7 +87,6 @@ public class ChatController {
 	}
 
 	// 채팅방 삭제
-	//@PostMapping("/deleteChatRoom/{roomId}")
 	@PostMapping("/rooms/delete")
 	@ApiOperation(value = "채팅방 삭제" ,notes = "해당 채팅방 호스트만 사용 가능")
 	public ResponseEntity<ChatRoomDTO> deleteChatRoom(@RequestBody ChatRoomDTO chatRoomDTO) {
@@ -106,18 +105,38 @@ public class ChatController {
 	}
 	
 	//채팅방 입장
-	//@GetMapping(value = "/enter/{roomId}")
 	@GetMapping("/rooms/{roomId}")
 	@ApiOperation(value = "채팅방 입장 , 채팅방 채팅 내용 불러오기" , notes = "채팅방 입장")
-	public ResponseEntity<Page<ChatMessageDTO>> enter(@PathVariable Long roomId
+	public ResponseEntity<?> enter(@PathVariable Long roomId
 			,	@RequestParam(defaultValue = "0") int page,
 				@RequestParam(defaultValue = "20") int size) {
 		// 사용자가 해당 채팅방에 포함되어 있는지 확인
 	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
+	    
 	    boolean isUserInRoom = chatRoomService.isUserInRoom(user.getEmail() , roomId);
+	   
 	    if (!isUserInRoom) {
-	        throw new AccessDeniedException("해당 채팅방에 접근할 수 없습니다.");
+	        ChatUserDTO chatUserDTO = chatRoomService.inviteChatUser(roomId, user.getEmail());
+			
+			ChatMessageDTO message = ChatMessageDTO.builder()
+									.roomId(roomId)
+									.content(user.getName() + "님이 입장하였습니다.")
+									.sender("SYSTEM")
+									.type("txt")
+									.timestamp(LocalDateTime.now())
+									.build();
+									
+			template.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+			
+			ChatMessage chatMessage = ChatMessage.builder()
+									 .roomId(message.getRoomId())
+									 .sender(message.getSender())
+									 .content(message.getContent())
+									 .type("txt")
+									 .timestamp(message.getTimestamp())
+									 .build();
+			chatService.saveChat(chatMessage);
 	    }
 		
 		//채팅 내용 뿌려주기
@@ -130,7 +149,6 @@ public class ChatController {
 	}
 	
 	//메시지 전송
-	//@PostMapping(value = "/message")
 	@PostMapping("/rooms/{roomId}/messages")
 	@ApiOperation(value = "메시지 전송 및 채팅 내용 저장" ,notes = "채팅 내용 저장")
 	public ResponseEntity<ChatMessageDTO> message(@RequestBody ChatMessageDTO message) {
@@ -162,7 +180,6 @@ public class ChatController {
 	}
 	
 	//채팅방 초대
-	//@PostMapping("/invite/{roomId}/{email}")
 	@PostMapping("/rooms/{roomId}/{email}/invite")
 	@ApiOperation(value = "채팅방 초대 및 안내 메시지 전송" ,notes = "채팅방 초대")
 	public ResponseEntity<?> inviteChatUser(@PathVariable Long roomId ,@PathVariable String email) {

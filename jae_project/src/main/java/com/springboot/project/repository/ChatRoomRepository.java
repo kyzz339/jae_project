@@ -12,4 +12,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> , Chat
 	
 	public ChatRoom findByRoomId(Long roomId); 
 	
+	public ChatRoom findByProductId(Long productId);
+	
 }

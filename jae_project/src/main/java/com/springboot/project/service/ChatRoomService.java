@@ -10,7 +10,7 @@ import com.springboot.project.data.dto.ProductDTO;
 public interface ChatRoomService {
 	
 	//나의 채팅방 찾기
-	public Page<ChatRoomDTO> findMyChatRoom(String email , Pageable pageable);
+	public Page<ChatRoomDTO> findMyChatRoom(String email, String type , Pageable pageable);
 	//채팅방 생성
 	public ChatRoomDTO createChatRoom(String roomName , String userid);
 	//상품관련 채팅방 생성
