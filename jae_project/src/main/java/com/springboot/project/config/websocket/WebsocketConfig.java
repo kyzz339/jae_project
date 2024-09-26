@@ -13,11 +13,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebsocketConfig implements WebSocketMessageBrokerConfigurer{
 	
-	@Value("{${frountIp}}")
-	String frountIp;
-	
-	@Value("{${frountPort}}")
-	String frountPort;
+	@Value("${frountIp}") 
+    private String frountIp;
+
+    @Value("${frountPort}") 
+    private String frountPort;
 	
 	 @Override
 	    public void configureMessageBroker(MessageBrokerRegistry config) {
