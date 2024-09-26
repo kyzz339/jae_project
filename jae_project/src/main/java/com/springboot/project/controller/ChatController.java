@@ -60,7 +60,7 @@ public class ChatController {
 			@RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size
 			) {
-		System.out.println(type);
+		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
 		//페이징 추가합시다
