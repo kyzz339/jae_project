@@ -20,8 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
 	
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-    	System.out.println(frountIp);
-    	System.out.println(frountIp +":"+frountPort);
+    	
         registry.addMapping("/**")
         //.allowedOriginPatterns("http://localhost:3000", "http://172.30.1.87:3000") // 두 도메인 허용
         .allowedOriginPatterns(frountIp , frountIp +":"+frountPort)

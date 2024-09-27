@@ -94,7 +94,7 @@ public class ChatController {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
 	    
-	    if(chatRoomService.isHostChatRoom(chatRoomDTO.getRoomId()).equals(user.getEmail())) {
+	    if(chatRoomService.isChatRoom(chatRoomDTO.getRoomId()).getHost().equals(user.getEmail())) {
 	    	ChatRoomDTO chatRoom = chatRoomService.deleteChatRoom(chatRoomDTO.getRoomId());
 
 			return ResponseEntity.ok(chatRoom);
@@ -115,10 +115,14 @@ public class ChatController {
 	    User user = (User) authentication.getPrincipal();
 	    
 	    boolean isUserInRoom = chatRoomService.isUserInRoom(user.getEmail() , roomId);
-	   
 	    if (!isUserInRoom) {
+	    	//채팅방 타입에 따라서 아무나 들어갈 수 있는지 없는지 판단 해야함
+	    	ChatRoomDTO checkedChatRoomDTO = chatRoomService.isChatRoom(roomId);
+	    	
+	    	if(checkedChatRoomDTO.getType().equals("product")) {
+	    		
 	        ChatUserDTO chatUserDTO = chatRoomService.inviteChatUser(roomId, user.getEmail());
-			
+	        
 			ChatMessageDTO message = ChatMessageDTO.builder()
 									.roomId(roomId)
 									.content(user.getName() + "님이 입장하였습니다.")
@@ -137,6 +141,9 @@ public class ChatController {
 									 .timestamp(message.getTimestamp())
 									 .build();
 			chatService.saveChat(chatMessage);
+	    	}else {
+	    		throw new AccessDeniedException("해당 채팅방에 접근할 수 없습니다.");
+	    	}
 	    }
 		
 		//채팅 내용 뿌려주기
@@ -145,6 +152,19 @@ public class ChatController {
 	    
 		Page<ChatMessageDTO> chatMessage = chatService.findChatMessageByroomId(roomId , pageable );
 		return ResponseEntity.ok(chatMessage);
+		
+	}
+	
+	@PostMapping("/rooms/{roomId}/exit")
+	@ApiOperation(value = "채팅방 나오기", notes = "채팅방 나오기")
+	public ResponseEntity<ChatUserDTO> exitChatRoom(@PathVariable Long roomId){
+		
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	    User user = (User) authentication.getPrincipal();
+		
+		ChatUserDTO chatUserDTO = chatRoomService.exitChatRoom(user.getEmail(), roomId);
+		
+		return ResponseEntity.ok(chatUserDTO);
 		
 	}
 	
@@ -193,7 +213,6 @@ public class ChatController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 									.body("이미 중복된 아이디가 있습니다.");
 		}
-		
 		
 		ChatUserDTO chatUserDTO = chatRoomService.inviteChatUser(roomId, email);
 		
