@@ -9,13 +9,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 	
-	@Value("${uploadDir}")
+	@Value("${uploadDir}") 
     private String uploadDir;
+
+    @Value("${frountIp}") 
+    private String frountIp;
+
+    @Value("${frountPort}")
+    private String frountPort;
 	
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+    	
         registry.addMapping("/**")
-        .allowedOriginPatterns("http://localhost:3000", "http://172.30.1.87:3000") // 두 도메인 허용
+        //.allowedOriginPatterns("http://localhost:3000", "http://172.30.1.87:3000") // 두 도메인 허용
+        .allowedOriginPatterns(frountIp , frountIp +":"+frountPort)
         .allowedMethods("GET", "POST", "PUT", "DELETE")
         .allowCredentials(true)
         .allowedHeaders("*");   

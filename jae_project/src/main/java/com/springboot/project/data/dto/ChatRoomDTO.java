@@ -20,7 +20,8 @@ public class ChatRoomDTO {
 	private Long roomId;
 	private String name;
 	private String host;
-	private Product product;
+	private Long product_id;
+	private String type;
     private List<ChatUser> chatUsers;
 	
 }

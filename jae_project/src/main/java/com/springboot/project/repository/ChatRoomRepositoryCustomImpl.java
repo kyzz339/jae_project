@@ -26,7 +26,7 @@ public class ChatRoomRepositoryCustomImpl extends QuerydslRepositorySupport impl
 	JPAQueryFactory jpaQueryFactory;
 	
 	@Override
-	public Page<ChatRoom> mychatRooms(String email , Pageable pageable){
+	public Page<ChatRoom> mychatRooms(String email,String type , Pageable pageable){
 		
 		QChatRoom qchatRoom = QChatRoom.chatRoom;
 		QChatUser qchatUser = QChatUser.chatUser;
@@ -36,7 +36,7 @@ public class ChatRoomRepositoryCustomImpl extends QuerydslRepositorySupport impl
                 .from(qchatRoom)
                 .leftJoin(qchatRoom.chatUsers, qchatUser)  // 변경된 부분
                 .on(qchatRoom.roomId.eq(qchatUser.chatRoom.roomId))
-                .where(qchatUser.email.eq(email))
+                .where(qchatUser.email.eq(email).and(qchatRoom.type.eq(type)))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -46,7 +46,7 @@ public class ChatRoomRepositoryCustomImpl extends QuerydslRepositorySupport impl
                 .from(qchatRoom)
                 .leftJoin(qchatRoom.chatUsers, qchatUser)
                 .on(qchatRoom.roomId.eq(qchatUser.chatRoom.roomId))
-                .where(qchatUser.email.eq(email))
+                .where(qchatUser.email.eq(email).and(qchatRoom.type.eq(type)))
                 .fetchCount();
 
         // PageImpl로 결과를 반환

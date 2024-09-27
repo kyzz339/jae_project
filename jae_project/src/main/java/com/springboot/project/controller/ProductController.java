@@ -45,7 +45,7 @@ public class ProductController {
 	@GetMapping("/list")
 	@ApiOperation(value = "상품 조회 리스트", notes = "상품 조회 리스트")
 	public ResponseEntity<Page<ProductDTO>> findProductList(@RequestParam(required = false) String title,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "16") int size) {
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "12") int size) {
 
 		Pageable pageable = PageRequest.of(page, size);
 

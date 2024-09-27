@@ -11,8 +11,6 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.management.RuntimeErrorException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -22,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.springboot.project.data.dto.ProductDTO;
+import com.springboot.project.data.entity.ChatRoom;
 import com.springboot.project.data.entity.Product;
+import com.springboot.project.repository.ChatRoomRepository;
 import com.springboot.project.repository.ProductRepository;
 import com.springboot.project.service.ProductService;
 
@@ -33,6 +33,9 @@ public class ProductServiceImpl implements ProductService{
 	
 	@Autowired
 	ProductRepository productRepository;
+	
+	@Autowired
+	ChatRoomRepository chatRoomRepository;
 	
 	@Value("${uploadDir}")
 	String uploadDir;
@@ -127,6 +130,8 @@ public class ProductServiceImpl implements ProductService{
 			throw new NoSuchElementException("해당 상품은 존재하지 않습니다.");
 		}
 		
+		ChatRoom chatRoom = chatRoomRepository.findByProductId(product.getId());
+		
 		ProductDTO productDTO = ProductDTO.builder()
 								.id(product.getId())
 								.title(product.getTitle())
@@ -137,6 +142,7 @@ public class ProductServiceImpl implements ProductService{
 								.user_email(product.getUser_email())
 								.createdAt(product.getCreatedAt())
 								.updatedAt(product.getUpdatedAt())
+								.chatRoomId(chatRoom.getRoomId())
 								.build();
 		
 		return productDTO;

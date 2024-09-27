@@ -1,5 +1,6 @@
 package com.springboot.project.config.websocket;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -11,6 +12,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebsocketConfig implements WebSocketMessageBrokerConfigurer{
+	
+	@Value("${frountIp}") 
+    private String frountIp;
+
+    @Value("${frountPort}") 
+    private String frountPort;
 	
 	 @Override
 	    public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -24,7 +31,8 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer{
 	    @Override
 	    public void registerStompEndpoints(StompEndpointRegistry registry) {
 	        registry.addEndpoint("/stomp/chat")
-	        .setAllowedOriginPatterns("http://localhost:3000")  //프론트 도메인 , 포트 허용
+	        //.setAllowedOriginPatterns("http://localhost:3000")  //프론트 도메인 , 포트 허용
+	        .setAllowedOriginPatterns(frountIp , frountIp +":"+frountPort)
             .withSockJS();
 	        //apic 테스트를 위해 추가
 	        registry.addEndpoint("/stomp/chat")

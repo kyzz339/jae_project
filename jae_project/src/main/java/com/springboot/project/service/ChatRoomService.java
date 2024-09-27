@@ -10,7 +10,7 @@ import com.springboot.project.data.dto.ProductDTO;
 public interface ChatRoomService {
 	
 	//나의 채팅방 찾기
-	public Page<ChatRoomDTO> findMyChatRoom(String email , Pageable pageable);
+	public Page<ChatRoomDTO> findMyChatRoom(String email, String type , Pageable pageable);
 	//채팅방 생성
 	public ChatRoomDTO createChatRoom(String roomName , String userid);
 	//상품관련 채팅방 생성
@@ -22,7 +22,9 @@ public interface ChatRoomService {
 	//해당 사용자 채팅방 존재 확인
 	public boolean isUserInRoom(String email ,Long roomId);
 	//host 사용자 확인
-	public String isHostChatRoom(Long roomId);
+	public ChatRoomDTO isChatRoom(Long roomId);
+	//채팅방 나오기
+	public ChatUserDTO exitChatRoom(String email , Long roomId);
 	
 	
 }
