@@ -2,6 +2,8 @@ package com.springboot.project.controller;
 
 import java.time.LocalDateTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +35,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping("/api/product")
 public class ProductController {
 
+	private final Logger LOGGER = LoggerFactory.getLogger(ProductController.class);
 	private final ProductService productService;
 	private final ChatRoomService chatRoomService;
 

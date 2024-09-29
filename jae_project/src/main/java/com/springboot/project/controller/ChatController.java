@@ -3,12 +3,13 @@ package com.springboot.project.controller;
 import java.time.LocalDateTime;
 
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,6 +41,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping("/api/chat")
 public class ChatController {
 
+	private final Logger LOGGER = LoggerFactory.getLogger(ChatController.class);
 	private final SimpMessagingTemplate template;
 	private final ChatService chatService;
 	private final ChatRoomService chatRoomService;
