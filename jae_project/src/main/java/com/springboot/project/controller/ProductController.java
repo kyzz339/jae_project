@@ -49,11 +49,13 @@ public class ProductController {
 	@ApiOperation(value = "상품 조회 리스트", notes = "상품 조회 리스트")
 	public ResponseEntity<Page<ProductDTO>> findProductList(@RequestParam(required = false) String title,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "12") int size) {
-
+		
+		LOGGER.info("상품 조회 시작" , page , size);
 		Pageable pageable = PageRequest.of(page, size);
 
 		Page<ProductDTO> productList = productService.findProductList(title, pageable);
-
+		LOGGER.info("상품 조회 완료 상품 갯수 : " ,productList.getTotalElements());
+		
 		return ResponseEntity.ok(productList);
 	}
 
@@ -64,13 +66,15 @@ public class ProductController {
 			@RequestPart(value = "image", required = false) MultipartFile file) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		User user = (User) authentication.getPrincipal();
+		LOGGER.info("상품 등록 요청 이메일 :" , user.getEmail());
 
 		productDTO.setUser_email(user.getEmail());
 		
 		ProductDTO createdProduct = productService.createProduct(productDTO, file);
-		
+		LOGGER.info("상품 등록 완료 상품 ID :" , createdProduct.getId());
 		ChatRoomDTO chatRoomDTO = chatRoomService.createProductChatRoom(createdProduct , createdProduct.getTitle() + "채팅방");
-
+		
+		LOGGER.info("상품 관련 채팅방 생성 완료 채팅방 ID" , chatRoomDTO.getRoomId());
 		return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
 
 	}
@@ -79,11 +83,15 @@ public class ProductController {
 	@ApiOperation(value = "상품조회", notes = "상품 조회")
 	public ResponseEntity<ProductDTO> findProductOne(@PathVariable Long id) {
 
+		LOGGER.info("상품 조회 요청 조회 ID :" , id);
+		
 		ProductDTO productDTO = productService.findProductOne(id);
 		if (productDTO == null) {
+			LOGGER.info("상품 조회 실패 상품 조회 ID :" ,id);
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-
+		
+		LOGGER.info("상품 조회 성공 상품 조회 ID : ",id);
 		return ResponseEntity.ok(productDTO);
 	}
 
@@ -91,20 +99,25 @@ public class ProductController {
 	@ApiOperation(value = "상품 삭제", notes = "상품 삭제")
 	public ResponseEntity<ProductDTO> deleteProduct(@PathVariable Long id) {
 
+		LOGGER.info("상품 삭제 실행 상품ID :",id);
 		ProductDTO existingProduct = productService.findProductOne(id);
 		if (existingProduct == null) {
+			LOGGER.info("상품 삭제 실패 , 상품 조회 실패 : 상품 id :" , id);
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		User user = (User) authentication.getPrincipal();
 		if (!user.getEmail().equals(existingProduct.getUser_email())) {
+			LOGGER.info("상품 삭제 실패 : 게시물 소유자 불일치 ",existingProduct.getUser_email());
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
 
 		ProductDTO productDTO = productService.deleteProduct(existingProduct);
 		if (productDTO == null) {
+			LOGGER.info("상품 삭제 실패 상품 ID: ", id);
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
+		LOGGER.info("상품 삭제 성공 상품ID :",id);
 		return ResponseEntity.ok(productDTO);
 
 	}
@@ -114,9 +127,11 @@ public class ProductController {
 	public ResponseEntity<ProductDTO> updateProduct(@RequestPart("product") ProductDTO productDTO,
 			@RequestPart(value = "image", required = false) MultipartFile file) {
 
+		LOGGER.info("상품 수정 요청 상품 ID :",productDTO.getId());
 		ProductDTO existingProductDTO = productService.findProductOne(productDTO.getId());
 
 		if (existingProductDTO == null) {
+			LOGGER.info("상품 조회 실패 상품ID :",productDTO.getId());
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
@@ -127,7 +142,9 @@ public class ProductController {
 		existingProductDTO.setUpdatedAt(LocalDateTime.now());
 
 		ProductDTO updatedProductDTO = productService.updateProduct(existingProductDTO, file);
-
+		LOGGER.info("상품 수정 성공 상품ID :",productDTO.getId());
+		
+		
 		return ResponseEntity.ok(updatedProductDTO);
 
 	}
