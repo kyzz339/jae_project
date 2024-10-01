@@ -3,12 +3,13 @@ package com.springboot.project.controller;
 import java.time.LocalDateTime;
 
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,6 +41,7 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping("/api/chat")
 public class ChatController {
 
+	private final Logger LOGGER = LoggerFactory.getLogger(ChatController.class);
 	private final SimpMessagingTemplate template;
 	private final ChatService chatService;
 	private final ChatRoomService chatRoomService;
@@ -61,12 +63,15 @@ public class ChatController {
 	        @RequestParam(defaultValue = "10") int size
 			) {
 		
+		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
+	    LOGGER.info("나의 채팅방 리스트 요청 이메일 : ",user.getEmail());
+	    
 		//페이징 추가합시다
 	    Pageable pageable = PageRequest.of(page, size);
-	    
 		Page<ChatRoomDTO> chatList = chatRoomService.findMyChatRoom(user.getEmail(), type , pageable);
+		LOGGER.info("채팅방 리스트요청 성공 채팅방 갯수 :",chatList.getTotalElements());
 		
 		return ResponseEntity.ok(chatList);
 
@@ -77,11 +82,14 @@ public class ChatController {
 	@ApiOperation(value = "채팅방 만들기" ,notes = "채팅방 새로 만들기")
 	public ResponseEntity<ChatRoomDTO> CreateRoom(@RequestBody ChatRoomDTO chatroomDTO) {
 		
+		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
-		
+	    LOGGER.info("채팅방 생성요청 생성 요청 ID" ,user.getEmail());
+	    
 		ChatRoomDTO chatroom = chatRoomService.createChatRoom(chatroomDTO.getName(), user.getEmail());
-
+		LOGGER.info("채팅방 생성 요청 성공 채팅방 ID",chatroom.getRoomId());
+		
 		return new ResponseEntity<>(chatroom , HttpStatus.CREATED);
 
 	}
@@ -94,12 +102,14 @@ public class ChatController {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
 	    
+	    LOGGER.info("채팅방 생성요청 삭제 요청 ID" ,user.getEmail());
+	    
 	    if(chatRoomService.isChatRoom(chatRoomDTO.getRoomId()).getHost().equals(user.getEmail())) {
 	    	ChatRoomDTO chatRoom = chatRoomService.deleteChatRoom(chatRoomDTO.getRoomId());
-
+	    	LOGGER.info("채팅방 생성성공 채팅 ID" ,chatRoom.getRoomId());
 			return ResponseEntity.ok(chatRoom);
 	    }else {
-	    	
+	    	LOGGER.info("채팅방 생성실패 채팅 호스트 불일치 호스트 이메일 :" ,chatRoomDTO.getHost());
 	    	throw new AccessDeniedException("host가 다른 사람입니다.");
 	    }
 	}
@@ -110,6 +120,8 @@ public class ChatController {
 	public ResponseEntity<?> enter(@PathVariable Long roomId
 			,	@RequestParam(defaultValue = "0") int page,
 				@RequestParam(defaultValue = "20") int size) {
+		
+		LOGGER.info("채팅방 입장 채팅방 ID :",roomId);
 		// 사용자가 해당 채팅방에 포함되어 있는지 확인
 	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
@@ -156,13 +168,15 @@ public class ChatController {
 	}
 	
 	@PostMapping("/rooms/{roomId}/exit")
-	@ApiOperation(value = "채팅방 나오기", notes = "채팅방 나오기")
+	@ApiOperation(value = "나의 채팅방 삭제(구독취소)", notes = "채팅방 삭제(구독취소)")
 	public ResponseEntity<ChatUserDTO> exitChatRoom(@PathVariable Long roomId){
 		
+		LOGGER.info("채팅방 구독 취소 채팅방 ID :" , roomId);
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    User user = (User) authentication.getPrincipal();
 		
 		ChatUserDTO chatUserDTO = chatRoomService.exitChatRoom(user.getEmail(), roomId);
+		LOGGER.info("구독 취소 성공 채팅방 id : {}, 이메일 : {}" ,roomId , user.getEmail());
 		
 		return ResponseEntity.ok(chatUserDTO);
 		
@@ -175,6 +189,8 @@ public class ChatController {
 		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		User user = (User) authentication.getPrincipal();
+		
+		LOGGER.info("메시지 전송 요청 전송 요청자ID :",user.getEmail());
 		
 		ObjectId objectId = new ObjectId();
 		message.setId(objectId.toString());
@@ -193,8 +209,9 @@ public class ChatController {
 				.build();
 		
 		ChatMessageDTO chatMessageDTO =  chatService.saveChat(chatMessage);
+		LOGGER.info("메시지 저장 성공 메시지ID :" , chatMessage.getId());
 		template.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
-		
+		LOGGER.info("메시지 전송 성공 메시지ID :",chatMessage.getId());
 		
 		return ResponseEntity.ok(chatMessageDTO);
 	}
@@ -243,7 +260,7 @@ public class ChatController {
 	@PostMapping("/upload/{roomId}/file")
 	@ApiOperation(value = "파일 업로드" ,notes = "파일 업로드")
 	public ResponseEntity<?> uploadfile(MultipartFile file , @PathVariable Long roomId) {
-		
+		LOGGER.info("파일 업로드 시작 파일 이름 :",file.getOriginalFilename());
 		try {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		
@@ -274,8 +291,10 @@ public class ChatController {
 		
 		return ResponseEntity.ok(messageDTO);
 	}catch (IllegalArgumentException e) {
+		LOGGER.info("파일 업로드 실패 :" , e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()); // 파일 크기 제한 등 예외 처리
     } catch (Exception e) {
+    	LOGGER.info("파일 업로드 실패 : ", e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 업로드 중 오류가 발생했습니다.");
     }
 	}
