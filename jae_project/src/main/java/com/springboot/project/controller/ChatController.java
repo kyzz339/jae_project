@@ -260,7 +260,7 @@ public class ChatController {
 	@PostMapping("/upload/{roomId}/file")
 	@ApiOperation(value = "파일 업로드" ,notes = "파일 업로드")
 	public ResponseEntity<?> uploadfile(MultipartFile file , @PathVariable Long roomId) {
-		
+		LOGGER.info("파일 업로드 시작 파일 이름 :",file.getOriginalFilename());
 		try {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		
@@ -291,8 +291,10 @@ public class ChatController {
 		
 		return ResponseEntity.ok(messageDTO);
 	}catch (IllegalArgumentException e) {
+		LOGGER.info("파일 업로드 실패 :" , e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()); // 파일 크기 제한 등 예외 처리
     } catch (Exception e) {
+    	LOGGER.info("파일 업로드 실패 : ", e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 업로드 중 오류가 발생했습니다.");
     }
 	}
