@@ -62,6 +62,9 @@
 
 추후 성능 향상과 실시간 처리가 중요한 경우, `@MessageMapping` 방식으로 전환하거나 보완하여 WebSocket을 더 적극적으로 활용할 계획입니다.
 
+
+Jenkin를 활용한 github 연동과 자동빌드화 예정 : https://www.notion.so/MAC-ecefde9037fa42acad8bed04e2722486
+
 ## 기술 스택
 
 - **백엔드**: Java 1.8, Spring Boot, JPA
