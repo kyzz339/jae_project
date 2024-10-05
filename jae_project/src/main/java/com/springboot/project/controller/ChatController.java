@@ -304,6 +304,7 @@ public class ChatController {
 	public ResponseEntity<Resource> downloadfile(@PathVariable String id , @PathVariable String filename){
 		
 		try {
+		LOGGER.info("파일 다운로드 시작");
 		Resource resource = chatService.downloadFile(id, filename);
 		
 		String originalFileName = chatService.originalFileName(id);
