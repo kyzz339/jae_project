@@ -222,7 +222,7 @@ public class ChatController {
 	public ResponseEntity<?> inviteChatUser(@PathVariable Long roomId ,@PathVariable String email) {
 		
 		//해당 아이디 회원으로 존재하는지 확인
-		
+		LOGGER.info("채팅방 초대");
 		
 		//Id 존재 확인 , 채팅방에 같은 아이디 있는지 확인
 		boolean userExists = chatRoomService.isUserInRoom(email , roomId);
