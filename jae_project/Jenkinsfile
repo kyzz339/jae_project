@@ -41,10 +41,6 @@ pipeline {
                         sh """
                         mv target/*.jar /home/ubuntu
                         """
-                        
-                        // 매개변수 사용 예시
-                        echo "프론트엔드 서버 IP: ${FRONT_IP}"
-                        echo "데이터베이스 서버 IP: ${DB_IP}"
                     }
                 }
             }
