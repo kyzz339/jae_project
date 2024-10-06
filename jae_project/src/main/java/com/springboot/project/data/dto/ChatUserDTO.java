@@ -20,6 +20,6 @@ public class ChatUserDTO {
 
 	private Long id;
 	private String email;
-	private int roomId;
+	private Long roomId;
 	
 }

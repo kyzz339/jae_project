@@ -8,6 +8,6 @@ import com.springboot.project.data.entity.ChatRoom;
 public interface ChatRoomRepositoryCustom {
 
 	
-	public Page<ChatRoom> mychatRooms(String email , Pageable pageable);
+	public Page<ChatRoom> mychatRooms(String email,String type , Pageable pageable);
 	
 }

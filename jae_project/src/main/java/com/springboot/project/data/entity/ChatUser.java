@@ -1,5 +1,6 @@
 package com.springboot.project.data.entity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -31,7 +32,7 @@ public class ChatUser {
 	@Column
 	private String email;
 	
-	@ManyToOne
+	@ManyToOne(cascade = CascadeType.REMOVE)
 	@JoinColumn(name = "roomId")
     private ChatRoom chatRoom;
 	

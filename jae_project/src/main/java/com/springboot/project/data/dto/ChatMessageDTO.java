@@ -16,10 +16,13 @@ import lombok.ToString;
 public class ChatMessageDTO {
 
 	private String id;
-	private int roomId;
+	private Long roomId;
 	private String sender;
 	private String name;
 	private String content;
+	private String type;
+	private String fileUrl;
+	private String original_filename;
 	private LocalDateTime timestamp;
 	
 }

@@ -5,21 +5,26 @@ import org.springframework.data.domain.Pageable;
 
 import com.springboot.project.data.dto.ChatRoomDTO;
 import com.springboot.project.data.dto.ChatUserDTO;
+import com.springboot.project.data.dto.ProductDTO;
 
 public interface ChatRoomService {
 	
 	//나의 채팅방 찾기
-	public Page<ChatRoomDTO> findMyChatRoom(String email , Pageable pageable);
+	public Page<ChatRoomDTO> findMyChatRoom(String email, String type , Pageable pageable);
 	//채팅방 생성
 	public ChatRoomDTO createChatRoom(String roomName , String userid);
+	//상품관련 채팅방 생성
+	public ChatRoomDTO createProductChatRoom(ProductDTO productDTO , String roomName);
 	//채팅방 삭제
-	public ChatRoomDTO deleteChatRoom(int roomId);
+	public ChatRoomDTO deleteChatRoom(Long roomId);
 	//채팅 상대 초대
-	public ChatUserDTO inviteChatUser(int roomId ,String email);
+	public ChatUserDTO inviteChatUser(Long roomId ,String email);
 	//해당 사용자 채팅방 존재 확인
-	public boolean isUserInRoom(String email ,int roomId);
+	public boolean isUserInRoom(String email ,Long roomId);
 	//host 사용자 확인
-	public String isHostChatRoom(int roomId);
+	public ChatRoomDTO isChatRoom(Long roomId);
+	//채팅방 나오기
+	public ChatUserDTO exitChatRoom(String email , Long roomId);
 	
 	
 }

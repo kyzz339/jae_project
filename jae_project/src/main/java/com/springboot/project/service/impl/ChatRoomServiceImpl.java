@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 
 import com.springboot.project.data.dto.ChatRoomDTO;
 import com.springboot.project.data.dto.ChatUserDTO;
+import com.springboot.project.data.dto.ProductDTO;
 import com.springboot.project.data.entity.ChatRoom;
 import com.springboot.project.data.entity.ChatUser;
+import com.springboot.project.data.entity.Product;
 import com.springboot.project.repository.ChatRoomRepository;
 import com.springboot.project.repository.ChatUserRepository;
 import com.springboot.project.service.ChatRoomService;
@@ -27,16 +29,17 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 	ChatUserRepository chatUserRepository;
 	
 	//본인 채팅방 찾기
-	public Page<ChatRoomDTO> findMyChatRoom(String email , Pageable pageable){
+	public Page<ChatRoomDTO> findMyChatRoom(String email ,String type ,Pageable pageable){
 		//query DSL로 개인 이메일로 roomid 조회
 		
-		Page<ChatRoom> chatRooms = chatRoomRepository.mychatRooms(email , pageable);
+		Page<ChatRoom> chatRooms = chatRoomRepository.mychatRooms(email,type , pageable);
 		
 		List<ChatRoomDTO> chatRoomDTO = chatRooms.stream()
 		        .map(chatRoom -> ChatRoomDTO.builder()
 		                .roomId(chatRoom.getRoomId())
 		                .name(chatRoom.getName())
 		                .host(chatRoom.getHost())
+		                .product_id(chatRoom.getRoomId())
 		                .build())
 		            .collect(Collectors.toList());
 		
@@ -49,6 +52,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 		ChatRoom chatroom = ChatRoom.builder()
 				.name(roomName)
 				.host(email)
+				.type("private")
 				.build();
 		
 		chatRoomRepository.save(chatroom);
@@ -62,13 +66,47 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 				.email(email) // jwt 로그인 본인 이메일로 변경 예정
 				.chatRoom(chatroom)
 				.build();
+		
 		chatUserRepository.save(chatUser);
 		
 		return chatroomDTO;
 	}
 	
+	//채팅방 생성
+		public ChatRoomDTO createProductChatRoom(ProductDTO productDTO , String roomName) {
+			
+			Product product = Product.builder()
+							.id(productDTO.getId())
+							.user_email(productDTO.getUser_email())
+							.build();
+							
+			ChatRoom chatroom = ChatRoom.builder()
+					.name(roomName)
+					.host(productDTO.getUser_email())
+					.product(product)
+					.type("product")
+					.build();
+			;
+			chatRoomRepository.save(chatroom);
+			
+			ChatRoomDTO chatroomDTO = ChatRoomDTO.builder()
+						.roomId(chatroom.getRoomId())
+						.name(chatroom.getName())
+						.product_id(product.getId())
+						.type(chatroom.getType())
+						.build();
+			
+			ChatUser chatUser =  ChatUser.builder()
+					.email(productDTO.getUser_email()) // jwt 로그인 본인 이메일로 변경 예정
+					.chatRoom(chatroom)
+					.build();
+			chatUserRepository.save(chatUser);
+			
+			return chatroomDTO;
+		}
+	
 	//채팅방 삭제
-	public ChatRoomDTO deleteChatRoom(int roomId) {
+	public ChatRoomDTO deleteChatRoom(Long roomId) {
 		
 		ChatRoom deletedChattRoom = chatRoomRepository.findByRoomId(roomId);
 		ChatRoomDTO chatRoomDTO = ChatRoomDTO.builder()
@@ -82,7 +120,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 	}
 	
 	//채팅방 초대
-	public ChatUserDTO inviteChatUser(int roomId , String email) {
+	public ChatUserDTO inviteChatUser(Long roomId , String email) {
 		
 		ChatRoom chatRoom = chatRoomRepository.findByRoomId(roomId);
 		
@@ -104,7 +142,7 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 	}
 	
 	//채팅방 사용자 존재 확인
-	public boolean isUserInRoom(String email ,int roomId) {
+	public boolean isUserInRoom(String email ,Long roomId) {
 		
 		boolean Chk = chatUserRepository.existsByEmailAndChatRoom_RoomId(email , roomId);
 		
@@ -113,13 +151,35 @@ public class ChatRoomServiceImpl implements ChatRoomService{
 	}
 	
 	//host 사용자 확인
-	public String isHostChatRoom(int roomId) {
+	public ChatRoomDTO isChatRoom(Long roomId) {
 		
 		ChatRoom chatRoom = chatRoomRepository.findByRoomId(roomId);
 		
-		String host = chatRoom.getHost();
+		ChatRoomDTO chatRoomDTO = ChatRoomDTO.builder()
+								.roomId(chatRoom.getRoomId())
+								.name(chatRoom.getName())
+								.host(chatRoom.getHost())
+								.product_id(chatRoom.getRoomId())
+								.type(chatRoom.getType())
+								.build();
 		
-		return host;
+		return chatRoomDTO;
+		
+	}
+	
+	public ChatUserDTO exitChatRoom(String email, Long roomId) {
+		
+		ChatUser chatUser = chatUserRepository.findByEmailAndChatRoom_RoomId(email, roomId);
+		
+		ChatUserDTO chatUserDTO = ChatUserDTO.builder()
+								 .id(chatUser.getId())
+								 .email(chatUser.getEmail())
+								 .roomId(chatUser.getId())
+								 .build();
+		
+		chatUserRepository.deleteById(chatUserDTO.getId());
+		
+		return chatUserDTO;
 		
 	}
 	

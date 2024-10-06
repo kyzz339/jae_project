@@ -28,8 +28,9 @@ public class ChatMessage {
 	
 		@Id
 		private String id;
+		
 		@Field("roomId")
-	    private int roomId;
+	    private Long roomId;
 
 	    @Field("sender")
 	    private String sender;
@@ -39,6 +40,15 @@ public class ChatMessage {
 
 	    @Field("content")
 	    private String content;
+	    
+	    @Field("type")
+	    private String type;
+	    
+	    @Field("file_url")
+	    private String fileUrl;
+	    
+	    @Field("original_filename")
+	    private String original_filename;
 
 	    @Field("timestamp")
 	    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
