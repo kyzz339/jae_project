@@ -34,7 +34,7 @@ pipeline {
                         -DDB_ID=${DB_ID} \
                         -DDB_PW=${DB_PW} \
                         -DDB_IP=${DB_IP} \
-                        -DskipTests
+                        -DskipTests=true
                         """
 						}
                         // 배포 단계

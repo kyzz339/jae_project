@@ -254,7 +254,7 @@ public class ChatController {
 								 .timestamp(message.getTimestamp())
 								 .build();
 		chatService.saveChat(chatMessage);
-		
+		LOGGER.info("채팅방 초대 완료");
 		return ResponseEntity.ok(chatUserDTO);
 		
 	}
