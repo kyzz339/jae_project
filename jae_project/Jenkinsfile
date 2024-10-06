@@ -28,8 +28,7 @@ pipeline {
                     ]) {
                         // 빌드 단계 - 환경 변수 사용
                         sh """
-                        ${MAVEN_HOME}/bin/mvn clean package \
-                        -Dspring.profiles.active=prod \
+                        ${MAVEN_HOME}/bin/mvn clean package  \
                         -DfrountIp=${FROUNT_IP} \
                         -DDB_ID=${DB_ID} \
                         -DDB_PW=${DB_PW} \
