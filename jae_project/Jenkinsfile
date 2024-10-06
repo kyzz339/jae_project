@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    environment {
+        JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
+        MAVEN_HOME = "/usr/share/maven"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build and Deploy') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    // Jenkins Credentials 사용
+                    withCredentials([
+                        string(credentialsId: 'frontIP', variable: 'FRONT_IP'),
+                        string(credentialsId: 'DB_ID', variable: 'DB_ID'),
+                        string(credentialsId: 'DB_PW', variable: 'DB_PW'),
+                        string(credentialsId: 'DB_IP', variable: 'DB_IP')
+                    ]) {
+                        // 빌드 단계 - 환경 변수 사용
+                        sh "${MAVEN_HOME}/bin/mvn clean package -Ddb.id=${DB_ID} -Ddb.pw=${DB_PW} -Ddb.ip=${DB_IP} -DskipTests"
+
+                        // 배포 단계
+                        sh """
+                        mv target/*.jar /home/ubuntu
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
