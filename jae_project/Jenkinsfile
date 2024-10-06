@@ -21,7 +21,7 @@ pipeline {
                 script {
                     // Jenkins Credentials 사용
                     withCredentials([
-                        string(credentialsId: 'frontIP', variable: 'FRONT_IP'),
+                        string(credentialsId: 'frountIP', variable: 'FROUNT_IP'),
                         string(credentialsId: 'DB_ID', variable: 'DB_ID'),
                         string(credentialsId: 'DB_PW', variable: 'DB_PW'),
                         string(credentialsId: 'DB_IP', variable: 'DB_IP')
@@ -30,7 +30,7 @@ pipeline {
                         sh """
                         ${MAVEN_HOME}/bin/mvn clean package -Pprod \
                         -Dspring.profiles.active=prod \
-                        -DfrountIp=${FRONT_IP} \
+                        -DfrountIp=${FROUNT_IP} \
                         -DDB_ID=${DB_ID} \
                         -DDB_PW=${DB_PW} \
                         -DDB_IP=${DB_IP} \
