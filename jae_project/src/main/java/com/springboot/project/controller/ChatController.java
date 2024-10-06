@@ -233,6 +233,7 @@ public class ChatController {
 									.body("이미 중복된 아이디가 있습니다.");
 		}
 		
+		LOGGER.info("회원 초대 채팅방 :",roomId);
 		ChatUserDTO chatUserDTO = chatRoomService.inviteChatUser(roomId, email);
 		
 		ChatMessageDTO message = ChatMessageDTO.builder()
