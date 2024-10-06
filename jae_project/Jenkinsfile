@@ -27,6 +27,7 @@ pipeline {
                         string(credentialsId: 'DB_IP', variable: 'DB_IP')
                     ]) {
                         // 빌드 단계 - 환경 변수 사용
+                        dir('jae_project') {
                         sh """
                         ${MAVEN_HOME}/bin/mvn clean package  \
                         -DfrountIp=${FROUNT_IP} \
@@ -35,7 +36,7 @@ pipeline {
                         -DDB_IP=${DB_IP} \
                         -DskipTests
                         """
-
+						}
                         // 배포 단계
                         sh """
                         mv target/*.jar /home/ubuntu
