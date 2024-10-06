@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+
+    environment {
+        JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
+        MAVEN_HOME = "/usr/share/maven"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build and Deploy') {
+            when {
+                branch 'main' // main 브랜치일 때만 빌드 및 배포 수행
+            }
+            steps {
+                script {
+                    // 빌드 단계
+                    sh "${MAVEN_HOME}/bin/mvn clean package -Pprod -Dspring.profiles.active=prod -DskipTests"
+                    
+                    // 배포 단계
+                    sh """
+                    mv target/*.jar /home/ubuntu
+                    """
+                }
+            }
+        }
+    }
+}
