@@ -226,6 +226,7 @@ public class ChatController {
 		
 		//Id 존재 확인 , 채팅방에 같은 아이디 있는지 확인
 		boolean userExists = chatRoomService.isUserInRoom(email , roomId);
+		LOGGER.info("ID존재 확인");
 		if(userExists) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 									.body("이미 중복된 아이디가 있습니다.");
