@@ -39,7 +39,7 @@ pipeline {
 						}
                         // 배포 단계
                         sh """
-                        mv target/*.jar /home/ubuntu
+                        mv jae_project/target/*.jar /home/ubuntu
                         """
                     }
                 }
