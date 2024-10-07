@@ -26,6 +26,13 @@ pipeline {
                         string(credentialsId: 'DB_PW', variable: 'DB_PW'),
                         string(credentialsId: 'DB_IP', variable: 'DB_IP')
                     ]) {
+                    	
+                    	sh """
+                        echo "Front IP: ${FROUNT_IP}"
+                        echo "Database ID: ${DB_ID}"
+                        echo "Database IP: ${DB_IP}"
+                        """
+                    
                         // 빌드 단계 - 환경 변수 사용
                         dir('jae_project') {
                         sh """
