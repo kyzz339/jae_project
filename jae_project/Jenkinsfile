@@ -4,6 +4,7 @@ pipeline {
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
         MAVEN_HOME = "/usr/share/maven"
+        JAR_NAME = "jae_project-0.0.1-SNAPSHOT.jar"
     }
 
     stages {
