@@ -28,15 +28,18 @@ pipeline {
                         string(credentialsId: 'DB_IP', variable: 'DB_IP')
                     ]) {
                     	
+                    	sh """
+					    # application-prod.yml 파일 내의 템플릿 변수들을 Jenkins Credentials 값으로 치환
+					    sed -i "s#\\\${frountIP}#${FROUNT_IP}#" jae_project/src/main/resources/application-prod.yml
+					    sed -i "s#\\\${DB_ID}#${DB_ID}#" jae_project/src/main/resources/application-prod.yml
+					    sed -i "s#\\\${DB_PW}#${DB_PW}#" jae_project/src/main/resources/application-prod.yml
+					    sed -i "s#\\\${DB_IP}#${DB_IP}#" jae_project/src/main/resources/application-prod.yml
+    					"""
                     
                         // 빌드 단계 - 환경 변수 사용
                         dir('jae_project') {
                         sh """
                         ${MAVEN_HOME}/bin/mvn clean package  \
-                        -DfrountIp=${FROUNT_IP} \
-                        -DDB_ID=${DB_ID} \
-                        -DDB_PW=${DB_PW} \
-                        -DDB_IP=${DB_IP} \
                         -DskipTests=true
                         """
 						}
