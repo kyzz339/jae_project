@@ -37,7 +37,7 @@ pipeline {
                         -DskipTests=true
                         """
 						}
-                        // 배포 단계
+                        // 배포 단계  
                         sh """
                         mv jae_project/target/*.jar /home/ubuntu
                         """
