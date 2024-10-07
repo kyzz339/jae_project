@@ -27,11 +27,6 @@ pipeline {
                         string(credentialsId: 'DB_IP', variable: 'DB_IP')
                     ]) {
                     	
-                    	sh """
-                        echo "Front IP: ${FROUNT_IP}"
-                        echo "Database ID: ${DB_ID}"
-                        echo "Database IP: ${DB_IP}"
-                        """
                     
                         // 빌드 단계 - 환경 변수 사용
                         dir('jae_project') {
@@ -44,9 +39,27 @@ pipeline {
                         -DskipTests=true
                         """
 						}
-                        // 배포 단계  
+                         // 기존 프로세스 종료 단계
                         sh """
-                        mv jae_project/target/*.jar /home/ubuntu
+                        PID=\$(lsof -t -i:8081) || true
+                        if [ ! -z "\$PID" ]; then
+                            echo "Stopping existing application with PID: \$PID"
+                            kill -9 \$PID
+                        fi
+                        """
+                        
+                        // 배포 단계
+                        sh """
+                        mv jae_project/target/*.jar /home/ubuntu/${JAR_NAME}
+                        """
+                        
+                        // 새로운 애플리케이션 실행 단계
+                        sh """
+                        nohup java -jar /home/ubuntu/${JAR_NAME} \
+                        -DfrountIp=${FROUNT_IP} \
+                        -DDB_ID=${DB_ID} \
+                        -DDB_PW=${DB_PW} \
+                        -DDB_IP=${DB_IP} > /home/ubuntu/app.log 2>&1 &
                         """
                     }
                 }
