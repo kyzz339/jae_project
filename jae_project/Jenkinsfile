@@ -45,12 +45,12 @@ pipeline {
 
                         // 배포 단계
                         sh """
-                        mv jae_project/target/*.jar /home/ubuntu/${JAR_NAME}
+                        mv jae_project/target/*.jar /home/Jenkins/${JAR_NAME}
                         """
 
                         // 새로운 애플리케이션 실행 단계
                         sh """
-                        nohup java -jar /home/Jenkins/${JAR_NAME} > /home/ubuntu/app.log 2>&1 &
+                        nohup java -jar /home/Jenkins/${JAR_NAME} > /home/Jenkins/app.log 2>&1 &
                         """
                     }
                 }
