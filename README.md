@@ -8,7 +8,7 @@
 - **인증**: JWT (JSON Web Token)
 - **실시간 통신**: STOMP
 - **API**: REST API , Swagger (API 문서화)
-- CI/CD: Jenkins (자동 빌드 및 배포 파이프라인 구축)
+- **CI/CD**: Jenkins (자동 빌드 및 배포 파이프라인 구축)
 
 ## 주요 기능
 
