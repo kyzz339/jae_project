@@ -1,4 +1,12 @@
 # jae_project(rest-api)
+## 기술 스택
+
+- **백엔드**: Java 1.8, Spring Boot, JPA
+- **데이터베이스**: MySQL, MongoDB
+- **인증**: JWT (JSON Web Token)
+- **실시간 통신**: STOMP
+- **API**: REST API
+
 ## 주요 기능
 
 - **인증 및 사용자 관리**:
@@ -64,11 +72,3 @@
 
 
 Jenkin를 활용한 github 연동과 자동빌드화 예정 : https://www.notion.so/MAC-ecefde9037fa42acad8bed04e2722486
-
-## 기술 스택
-
-- **백엔드**: Java 1.8, Spring Boot, JPA
-- **데이터베이스**: MySQL, MongoDB
-- **인증**: JWT (JSON Web Token)
-- **실시간 통신**: STOMP
-- **API**: REST API
