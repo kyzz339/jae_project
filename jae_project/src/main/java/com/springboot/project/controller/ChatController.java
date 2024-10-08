@@ -35,8 +35,10 @@ import com.springboot.project.data.entity.User;
 import com.springboot.project.service.ChatRoomService;
 import com.springboot.project.service.ChatService;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+@Api(tags = "채팅 관리 API", description = "채팅 , 채팅방 관련 CRUD 기능 제공")
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {
