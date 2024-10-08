@@ -34,8 +34,8 @@ public class SwaggerConfiguration {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("Swagger API Documentation")
-                .description("API documentation with JWT Authentication")
+                .title("jae_project")
+                .description("jae_project swagger 문서화")
                 .version("1.0.0")
                 .build();
     }

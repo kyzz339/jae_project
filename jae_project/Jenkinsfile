@@ -47,11 +47,6 @@ pipeline {
                         sh """
                         mv jae_project/target/*.jar /home/Jenkins/${JAR_NAME}
                         """
-
-                        // 새로운 애플리케이션 실행 단계
-                        sh """
-						sudo -u jenkins nohup java -jar /home/Jenkins/${JAR_NAME} > /home/Jenkins/app.log 2>&1 &
-						"""
                     }
                 }
             }
