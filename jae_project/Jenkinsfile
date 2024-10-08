@@ -35,13 +35,13 @@ pipeline {
                         }
 
                         // 기존 프로세스 종료 단계
-                        sh """
-                        PID=\$(lsof -t -i:8081) || true
-                        if [ ! -z "\$PID" ]; then
-                            echo "Stopping existing application with PID: \$PID"
-                            kill -9 \$PID
-                        fi
-                        """
+                        //sh """
+                        //PID=\$(lsof -t -i:8081) || true
+                        //if [ ! -z "\$PID" ]; then
+                        //    echo "Stopping existing application with PID: \$PID"
+                        //    kill -9 \$PID
+                        //fi
+                        //"""
 
                         // 배포 단계
                         sh """
