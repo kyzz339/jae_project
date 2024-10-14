@@ -3,7 +3,7 @@
 지금까지 써보지 않은 기술 스택을 사용해보기 위한 프로젝트입니다.
 
 ## 기술 스택
-- **백엔드**: Java 1.8, Spring Boot, JPA
+- **백엔드**: Java 17, Spring Boot, JPA
 - **데이터베이스**: MySQL, MongoDB
 - **인증**: JWT (JSON Web Token)
 - **실시간 통신**: STOMP
