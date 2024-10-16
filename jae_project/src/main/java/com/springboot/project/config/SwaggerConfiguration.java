@@ -35,7 +35,7 @@ public class SwaggerConfiguration {
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("jae_project")
-                .description("jae_project swagger 문서화")
+                .description("jae_project swagger 문서화 입니다.")
                 .version("1.0.0")
                 .build();
     }
